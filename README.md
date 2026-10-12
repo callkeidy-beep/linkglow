@@ -19,6 +19,10 @@ Open `index.html` in a browser. Deploy: import this repo in Vercel (no build com
 | Creator | My Collaborations | Applied → Sample Shipped (tracking #) → Content Upload (live FTC caption check) → Completed. |
 | Both | Performance | Clicks, promo-code uses, conversion rate, revenue or earnings, a 14-day trend, a per-creator table. |
 
+| Both | Glow Feed | Finished collabs with captions, clicks and code uses. Like and comment as the brand or the creator. Brand Glow Notes (stars + tags + one line) appear on posts and profiles. |
+| Creator | My Profile | Living media kit: photo upload (resized to 320px), bio, vibe tags, rate card, highlights. Live preview of what brands see. |
+| Creator → Brand | Pitch | Creators pitch their own idea to any campaign with a package and price. Brands accept (sample ships) or decline in My Campaigns. |
+
 "Reset demo" in the footer restores the seed data.
 
 ## Package for App Store / Google Play (Capacitor)

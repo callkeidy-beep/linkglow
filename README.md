@@ -23,6 +23,9 @@ Open `index.html` in a browser. Deploy: import this repo in Vercel (no build com
 | Creator | My Profile | Living media kit: photo upload (resized to 320px), bio, vibe tags, rate card, highlights. Live preview of what brands see. |
 | Creator → Brand | Pitch | Creators pitch their own idea to any campaign with a package and price. Brands accept (sample ships) or decline in My Campaigns. |
 
+| Creator | Accounts & Join | Account chip in the header switches between creators (post, pitch, comment as anyone). **Join as a new creator** registers name, handle, platform, followers, ER, city, skin type/tone, niche, bio and photo; the new creator shows up in Brand Discovery with a "New" tag. |
+| Creator | Posts | Instagram-style posts (photo cropped to 4:5 + caption with #hashtags) in the Glow Feed and a 3-column grid on every profile. Likes, comments, delete own post. Feed filter: All / Creator posts / Collab results. |
+
 "Reset demo" in the footer restores the seed data.
 
 ## Package for App Store / Google Play (Capacitor)

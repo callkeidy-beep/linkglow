@@ -228,7 +228,7 @@
   .link-plain.strong { font-weight: 650; }
   .link-plain:hover { text-decoration: underline; text-underline-offset: 3px; }
   .clamp2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .feed { display: grid; gap: 16px; max-width: 640px; margin: 0 auto; }
+  .feed { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; max-width: 640px; margin: 0 auto; }
   .post { padding: 18px; }
   .post-cap { margin: 12px 0; font-size: 15px; white-space: pre-line; }
   .post .product-art { height: 170px; margin-bottom: 10px; }
@@ -257,6 +257,24 @@
   .pitch { border-top: 1px solid var(--line); padding: 14px 0; }
   .pitch:first-child { border-top: 0; padding-top: 0; }
   .quote { border-left: 3px solid var(--blush); padding: 2px 0 2px 12px; margin: 8px 0; color: var(--ink-2); font-size: 14px; }
+
+  .acct { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 3px 12px 3px 3px; font-size: 13px; font-weight: 600; max-width: 200px; }
+  .acct span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ph { width: 100%; aspect-ratio: 4 / 5; border-radius: var(--r-sm); object-fit: cover; display: block; margin-bottom: 10px; }
+  .ph.art { display: grid; align-items: end; padding: 16px; position: relative; overflow: hidden; }
+  .ph.art::before { content: ""; position: absolute; width: 46%; aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,.45); top: 16%; right: 12%; }
+  .ph.art span { position: relative; font-weight: 700; font-size: 22px; letter-spacing: -.02em; color: rgba(31,27,24,.78); }
+  .ig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 16px; }
+  .ig-grid button { padding: 0; border: 0; background: none; border-radius: 6px; overflow: hidden; }
+  .ig-grid .ph { aspect-ratio: 1; border-radius: 6px; margin: 0; }
+  .ig-grid .ph.art { padding: 8px; }
+  .ig-grid .ph.art span { font-size: 11px; }
+  .composer { display: flex; gap: 12px; align-items: center; padding: 14px 16px; }
+  .composer .fake { flex: 1; text-align: left; border: 1px solid var(--line); background: var(--sunk); border-radius: 999px; padding: 10px 16px; color: var(--muted); font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .drop { border: 1.5px dashed var(--line); border-radius: var(--r-sm); aspect-ratio: 4 / 5; max-height: 340px; display: grid; place-items: center; color: var(--muted); font-size: 14px; background: var(--sunk); margin: 0 auto; width: 100%; }
+  .hash { color: var(--sky-ink); font-weight: 600; }
+  .acct-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 8px; border: 0; background: none; border-radius: var(--r-sm); text-align: left; }
+  .acct-row:hover { background: var(--sunk); }
 
   /* Mobile bottom nav */
   .bottom-nav { display: none; }
@@ -392,7 +410,13 @@ const KO = {
   'collabs': '건 협업',
   'Pitched': '역제안',
   'No pending pitches.': '대기 중인 역제안이 없습니다.',
-  'Product only': '제품만'
+  'Product only': '제품만',
+  'All': '전체',
+  'Creator posts': '크리에이터 게시물',
+  'Collab results': '협업 결과',
+  'Creator posts and finished collabs. Real numbers. Real notes.': '크리에이터 게시물과 끝난 협업. 진짜 숫자, 진짜 후기.',
+  'Posts': '게시물',
+  'New': '신규'
 };
 
 /* ---------- Seed data ---------- */
@@ -407,7 +431,6 @@ const CREATORS = [
   { id: 'cr8', name: 'Emily Carter', handle: '@emsminimalskin', platform: 'TikTok', followers: 71200, er: 3.8, niche: 'Minimal Routines', tone: 'Fair', skin: 'Sensitive', city: 'Denver, CO', fee: 520, hue: '#E1E8F0' },
   { id: 'cr9', name: 'Lauren Kim', handle: '@laurenlayers', platform: 'Reels', followers: 27600, er: 7.7, niche: 'K-Beauty Routines', tone: 'Light', skin: 'Combination', city: 'New York, NY', fee: 280, hue: '#F6EED6' }
 ];
-const ME_CREATOR = 'cr1';           // Creator view is signed in as Maya
 const ME_BRAND = 'Dewlab Seoul';    // Brand view is signed in as Dewlab Seoul
 
 const SKIN_TYPES = ['Dry', 'Oily', 'Combination', 'Sensitive', 'Acne-prone', 'Normal'];
@@ -468,6 +491,10 @@ function seed() {
     cf: { q: '', concern: '', comp: '', category: '' },
     offerCampaign: 'c1',
     perfCampaign: '',
+    creators: CREATORS.map((c) => ({ ...c })),
+    me: 'cr1',             // Creator view is signed in as this creator
+    posts: seedPosts(),
+    feedFilter: 'all',
     profiles: seedProfiles(),
     pitches: [
       { id: 'p1', creatorId: 'cr8', campaignId: 'c1', message: 'A 3-product shelf, rebuilt around your toner. Sensitive skin, 7 days, no other actives. Calm skin on day 7 is the hook.', pkg: 'TikTok video', price: 400, status: 'pending', ts: hoursAgo(5) },
@@ -481,7 +508,12 @@ function seed() {
       ],
       k12: [{ id: 'm3', by: 'cr7', name: 'Imani Johnson', text: 'Finally someone tests these on deep skin. Thank you.', ts: hoursAgo(50) }],
       k13: [{ id: 'm4', by: 'cr9', name: 'Lauren Kim', text: 'The mode-by-mode breakdown is so clear.', ts: hoursAgo(70) }],
-      k7: [{ id: 'm5', by: 'brand', name: 'Dewlab Seoul', text: 'Rebooking you for the mask launch, Kayla.', ts: hoursAgo(90) }]
+      k7: [{ id: 'm5', by: 'brand', name: 'Dewlab Seoul', text: 'Rebooking you for the mask launch, Kayla.', ts: hoursAgo(90) }],
+      po1: [
+        { id: 'm6', by: 'cr3', name: 'Sofia Ramirez', text: 'Three products and my skin would finally stop yelling at me.', ts: hoursAgo(2) },
+        { id: 'm7', by: 'brand', name: 'Dewlab Seoul', text: 'Emily, this shelf is exactly why we liked your pitch. Talk soon.', ts: hoursAgo(1) }
+      ],
+      po4: [{ id: 'm8', by: 'cr7', name: 'Imani Johnson', text: 'The middle one. It is always the middle one.', ts: hoursAgo(20) }]
     },
     liked: []
   };
@@ -503,6 +535,18 @@ function seed() {
   }
   return s;
 }
+function seedPosts() {
+  const P = (id, creatorId, g0, g1, label, caption, h, likes) => ({ id, creatorId, img: '', art: { g: [g0, g1], label }, caption, ts: hoursAgo(h), likes });
+  return [
+    P('po1', 'cr8', '#EFE7DD', '#D9C9B8', '3-product shelf', 'My whole routine fits on one shelf. Cleanser, toner, SPF. That is it. #minimalskincare #sensitiveskin', 3, 184),
+    P('po2', 'cr1', '#F6E1DA', '#E9B8A8', 'Day 7 · chin', 'Day 7 of the barrier test. My chin is calm for the first time in a month. Full verdict Sunday. #acneprone #kbeauty', 9, 256),
+    P('po3', 'cr5', '#E1E8F0', '#B9C6DA', 'LED · 630nm', 'Red light at 630nm vs 830nm. The explainer drops tonight. #beautytech', 14, 402),
+    P('po4', 'cr2', '#E8D5C4', '#B98A6B', 'SPF on deep skin', 'Three Korean sunscreens on deep skin. Only one left zero cast. Guess which. #melaninskincare #spf', 28, 611),
+    P('po5', 'cr8', '#E3EBDF', '#B8CBB0', 'Gel cream · macro', 'Gel cream texture under the macro lens. Gone in under a minute. #texture', 52, 97),
+    P('po6', 'cr6', '#F6EED6', '#E4CF95', 'Toner tier list', 'Toner tier list, humid-city edition. S tier surprised me. #kbeauty #oilyskin', 75, 233),
+    P('po7', 'cr1', '#EFE4F2', '#CDB6D6', 'Macro · pores', 'Pores under a 100mm macro. No filter, no smoothing. #nofilter', 120, 318)
+  ];
+}
 function hoursAgo(h) { return Date.now() - h * 3600000; }
 
 function blankDraft() {
@@ -510,7 +554,15 @@ function blankDraft() {
 }
 
 /* ---------- State ---------- */
-let S = load() || seed();
+let S = migrate(load()) || seed();
+let storageWarned = false;
+// Older saved demos predate creator accounts and posts: fill in what is missing.
+function migrate(s) {
+  if (!s) return null;
+  const d = seed();
+  for (const k of ['creators', 'me', 'posts', 'feedFilter']) if (s[k] === undefined) s[k] = d[k];
+  return s;
+}
 let modal = null;   // { type: 'contract' | 'upload' | 'tracking', ... } — transient, not persisted
 let toastMsg = '';
 let toastTimer = null;
@@ -519,9 +571,13 @@ function load() {
   try { const raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
 }
 function save() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) { /* storage unavailable: run in-memory */ }
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); return true; } catch (e) { return false; }
 }
-function update(fn) { fn(S); save(); render(); }
+function update(fn) {
+  fn(S);
+  if (!save() && !storageWarned) { storageWarned = true; toastMsg = 'Browser storage is full. Changes stay until you close this tab.'; }
+  render();
+}
 function toast(msg) {
   toastMsg = msg; render();
   clearTimeout(toastTimer);
@@ -536,7 +592,7 @@ const fmtK = (n) => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K' : S
 const fmt$ = (n) => '$' + Math.round(n).toLocaleString('en-US');
 const pct = (n) => (n * 100).toFixed(1) + '%';
 const initials = (name) => name.split(' ').map((w) => w[0]).join('').slice(0, 2);
-const creator = (id) => CREATORS.find((c) => c.id === id);
+const creator = (id) => S.creators.find((c) => c.id === id);
 const campaign = (id) => S.campaigns.find((c) => c.id === id);
 const uid = (p) => p + Math.random().toString(36).slice(2, 8);
 const profile = (id) => S.profiles[id] || (S.profiles[id] = { photo: '', bio: '', vibe: [], packages: [], highlights: [] });
@@ -621,7 +677,7 @@ function tabsFor(role) {
       { id: 'analytics', label: t('Performance'), short: S.lang === 'ko' ? '성과' : 'Stats', icon: ICON.chart }
     ];
   }
-  const action = S.collabs.filter((k) => k.creatorId === ME_CREATOR && (k.stage === -1 || k.stage === 1 || k.stage === 2)).length;
+  const action = S.collabs.filter((k) => k.creatorId === S.me && (k.stage === -1 || k.stage === 1 || k.stage === 2)).length;
   return [
     { id: 'feed', label: 'Campaigns', short: 'Campaigns', icon: ICON.feed },
     { id: 'glow', label: 'Glow Feed', short: 'Feed', icon: ICON.heart },
@@ -641,6 +697,7 @@ function Header() {
     ${S.role === 'brand' ? `<div class="seg sm" role="group" aria-label="Language">
       <button class="${S.lang === 'ko' ? 'on' : ''}" data-action="lang" data-v="ko">KO</button>
       <button class="${S.lang === 'en' ? 'on' : ''}" data-action="lang" data-v="en">EN</button></div>` : ''}
+    ${S.role === 'creator' ? `<button class="acct" data-action="account" aria-label="Switch creator account">${Avatar(creator(S.me), 28)}<span>${esc(creator(S.me).handle)}</span>▾</button>` : ''}
     <div class="seg" role="tablist" aria-label="Switch view">
       <button class="${S.role === 'brand' ? 'on' : ''}" data-action="role" data-v="brand">${brandLabel}</button>
       <button class="${S.role === 'creator' ? 'on' : ''}" data-action="role" data-v="creator">Creator (EN)</button>
@@ -718,7 +775,7 @@ function BrandCreate() {
 /* ----- Brand: Discovery ----- */
 function filteredCreators() {
   const f = S.df, q = f.q.trim().toLowerCase();
-  return CREATORS.filter((c) =>
+  return S.creators.filter((c) =>
     (!q || [c.name, c.handle, c.niche, c.city].join(' ').toLowerCase().includes(q)) &&
     (!f.platform || c.platform === f.platform) &&
     (!f.niche || c.niche === f.niche) &&
@@ -730,7 +787,7 @@ function filteredCreators() {
 function BrandDiscover() {
   const f = S.df, list = filteredCreators();
   const mine = S.campaigns.filter((c) => c.brand === ME_BRAND);
-  const uniq = (k) => [...new Set(CREATORS.map((c) => c[k]))].sort();
+  const uniq = (k) => [...new Set(S.creators.map((c) => c[k]))].sort();
   return `
   <div class="page-head"><div><h1>${t('Creator Discovery')}</h1><p class="sub">${list.length} ${t('creators match')}</p></div>
     <label class="f" style="min-width:220px"><span class="xs">${t('Choose a campaign')}</span>
@@ -765,7 +822,7 @@ function CreatorCard(c) {
     </div>
     <div class="chips" style="margin-bottom:14px">
       <span class="tag ${c.platform === 'TikTok' ? 'blush' : 'sky'}">${c.platform}</span>
-      <span class="tag">${esc(c.niche)}</span><span class="tag sage">Tone · ${c.tone}</span><span class="tag">${c.skin} skin</span>
+      <span class="tag">${esc(c.niche)}</span><span class="tag sage">Tone · ${c.tone}</span><span class="tag">${c.skin} skin</span>${c.isNew ? `<span class="tag butter">✦ ${t('New')}</span>` : ''}
     </div>
     <div class="row" style="flex-wrap:nowrap">
       <button class="btn ghost" data-action="profile" data-id="${c.id}" style="flex:1">${t('View profile')}</button>
@@ -844,7 +901,7 @@ function filteredCampaigns() {
   ).sort((a, b) => a.created - b.created);
 }
 function CreatorFeed() {
-  const f = S.cf, list = filteredCampaigns(), me = creator(ME_CREATOR);
+  const f = S.cf, list = filteredCampaigns(), me = creator(S.me);
   return `
   <div class="page-head"><div><h1>Hi ${esc(me.name.split(' ')[0])} — fresh from Seoul.</h1><p class="sub">${list.length} open K-Beauty campaigns · matched to ${me.skin.toLowerCase()} skin</p></div>
     <button class="btn blush" data-action="pitch">✦ Pitch a brand</button></div>
@@ -858,13 +915,13 @@ function CreatorFeed() {
   ${list.length ? `<div class="grid cards">${list.map((c) => CampaignCard(c)).join('')}</div>` : Empty('No campaigns match. Try another skin concern.')}`;
 }
 function CampaignCard(c, preview) {
-  const mine = S.collabs.find((k) => k.campaignId === c.id && k.creatorId === ME_CREATOR);
+  const mine = S.collabs.find((k) => k.campaignId === c.id && k.creatorId === S.me);
   const taken = S.collabs.filter((k) => k.campaignId === c.id).length;
-  const match = c.skin.includes(creator(ME_CREATOR).skin);
+  const match = c.skin.includes(creator(S.me).skin);
   let cta;
   if (preview) cta = `<button class="btn primary block" type="button" disabled>Apply for Sample</button>`;
   else if (!mine) {
-    const pitched = S.pitches.find((p) => p.campaignId === c.id && p.creatorId === ME_CREATOR && p.status === 'pending');
+    const pitched = S.pitches.find((p) => p.campaignId === c.id && p.creatorId === S.me && p.status === 'pending');
     cta = `<button class="btn primary block" data-action="apply" data-id="${c.id}">Apply for Sample</button>
       <div style="text-align:center;margin-top:10px">${pitched ? '<span class="tag butter">Pitch sent · waiting</span>' : `<button class="link small" data-action="pitch" data-id="${c.id}">or pitch your own idea →</button>`}</div>`;
   }
@@ -892,7 +949,7 @@ function CampaignCard(c, preview) {
 
 /* ----- Creator: Collaboration status ----- */
 function CreatorStatus() {
-  const ks = S.collabs.filter((k) => k.creatorId === ME_CREATOR);
+  const ks = S.collabs.filter((k) => k.creatorId === S.me);
   const offers = ks.filter((k) => k.stage === -1);
   const active = ks.filter((k) => k.stage >= 0).sort((a, b) => a.stage - b.stage);
   return `
@@ -908,7 +965,7 @@ function CreatorStatus() {
   ${MyPitches()}`;
 }
 function MyPitches() {
-  const ps = S.pitches.filter((p) => p.creatorId === ME_CREATOR).sort((a, b) => b.ts - a.ts);
+  const ps = S.pitches.filter((p) => p.creatorId === S.me).sort((a, b) => b.ts - a.ts);
   const cls = { pending: 'butter', accepted: 'sage', declined: '' };
   return `
   <div class="row between" style="margin:26px 0 10px"><p class="section-label" style="margin:0">Your pitches</p><button class="btn ghost sm" data-action="pitch">+ New pitch</button></div>
@@ -952,7 +1009,7 @@ function CollabCard(k) {
 /* ----- Analytics (both roles) ----- */
 function Analytics() {
   const isBrand = S.role === 'brand';
-  let ks = S.collabs.filter((k) => k.stage === 3 && (isBrand ? campaign(k.campaignId).brand === ME_BRAND : k.creatorId === ME_CREATOR));
+  let ks = S.collabs.filter((k) => k.stage === 3 && (isBrand ? campaign(k.campaignId).brand === ME_BRAND : k.creatorId === S.me));
   const camps = [...new Set(ks.map((k) => k.campaignId))].map(campaign);
   if (S.perfCampaign && camps.some((c) => c.id === S.perfCampaign)) ks = ks.filter((k) => k.campaignId === S.perfCampaign);
   const rows = ks.map((k) => ({ k, m: metrics(k), cr: creator(k.creatorId), c: campaign(k.campaignId) }));
@@ -1007,14 +1064,51 @@ function Sparkline(data) {
 
 /* ----- Glow Feed (both roles) ----- */
 function GlowFeed() {
-  const posts = S.collabs.filter((k) => k.stage === 3).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  const f = S.feedFilter;
+  const items = [
+    ...(f !== 'posts' ? S.collabs.filter((k) => k.stage === 3).map((k) => ({ ts: k.ts || 0, html: () => Post(k) })) : []),
+    ...(f !== 'collabs' ? S.posts.map((po) => ({ ts: po.ts, html: () => UserPost(po) })) : [])
+  ].sort((a, b) => b.ts - a.ts);
+  const me = creator(S.me);
   return `
-  <div class="page-head" style="max-width:640px;margin-left:auto;margin-right:auto"><div><h1>${t('Glow Feed')}</h1><p class="sub">${t('Finished collabs. Real numbers. Real notes.')}</p></div></div>
-  <div class="feed">${posts.length ? posts.map(Post).join('') : Empty('No finished collabs yet.')}</div>`;
+  <div class="page-head" style="max-width:640px;margin-left:auto;margin-right:auto"><div><h1>${t('Glow Feed')}</h1><p class="sub">${t('Creator posts and finished collabs. Real numbers. Real notes.')}</p></div></div>
+  <div class="feed">
+    ${S.role === 'creator' ? `<div class="card composer">${Avatar(me, 40)}<button class="fake" data-action="compose">Share a routine, a shelf, a texture…</button><button class="btn primary sm" data-action="compose">Post</button></div>` : ''}
+    <div class="chips">${[['all', 'All'], ['posts', 'Creator posts'], ['collabs', 'Collab results']].map(([v, l]) => `<button class="chip ${f === v ? 'on' : ''}" data-action="feed-filter" data-v="${v}">${t(l)}</button>`).join('')}</div>
+    ${items.length ? items.map((x) => x.html()).join('') : Empty('Nothing here yet.')}
+  </div>`;
+}
+const linkTags = (text) => esc(text).replace(/#([\w가-힣]+)/g, '<span class="hash">#$1</span>');
+function PostArt(po, cls = 'ph') {
+  if (po.img) return `<img class="${cls}" src="${esc(po.img)}" alt="${esc(po.caption.slice(0, 80))}" loading="lazy">`;
+  return `<div class="${cls} art" style="background:linear-gradient(135deg,${po.art.g[0]},${po.art.g[1]})" role="img" aria-label="${esc(po.art.label)}"><span>${esc(po.art.label)}</span></div>`;
+}
+function UserPost(po, bare) {
+  const cr = creator(po.creatorId), cs = S.comments[po.id] || [], liked = S.liked.includes(po.id);
+  const mine = S.role === 'creator' && po.creatorId === S.me;
+  const asName = S.role === 'brand' ? ME_BRAND : creator(S.me).name;
+  return `
+  <article class="${bare ? '' : 'card post'}">
+    <div class="row" style="gap:10px;flex-wrap:nowrap;margin-bottom:12px">${AvatarBtn(cr, 42)}
+      <div style="min-width:0;flex:1"><button class="link-plain strong" data-action="profile" data-id="${cr.id}">${esc(cr.name)}</button>
+        <div class="xs muted">${esc(cr.handle)} · ${cr.platform} · ${ago(po.ts)}</div></div>
+      ${mine ? `<button class="link small" data-action="del-post" data-id="${po.id}">Delete</button>` : ''}</div>
+    ${PostArt(po)}
+    <div class="row">
+      <button class="react ${liked ? 'on' : ''}" data-action="like" data-id="${po.id}" aria-pressed="${liked}">♥ ${(po.likes || 0) + (liked ? 1 : 0)}</button>
+      <span class="small muted">${cs.length} comment${cs.length === 1 ? '' : 's'}</span>
+    </div>
+    ${po.caption ? `<p class="post-cap"><b>${esc(cr.handle)}</b> ${linkTags(po.caption)}</p>` : ''}
+    ${cs.length ? `<div class="comments">${cs.map(Comment).join('')}</div>` : ''}
+    <form class="comment-form" data-collab="${po.id}">
+      <input class="input" id="cm-${po.id}${bare ? '-m' : ''}" maxlength="280" autocomplete="off" placeholder="${t('Add a comment…')} (${esc(asName)})">
+      <button class="btn primary sm" type="submit">${t('Post')}</button>
+    </form>
+  </article>`;
 }
 function Post(k) {
   const cr = creator(k.creatorId), c = campaign(k.campaignId), m = metrics(k), cs = S.comments[k.id] || [], liked = S.liked.includes(k.id);
-  const asName = S.role === 'brand' ? ME_BRAND : creator(ME_CREATOR).name;
+  const asName = S.role === 'brand' ? ME_BRAND : creator(S.me).name;
   return `
   <article class="card post">
     <div class="row post-head" style="gap:10px;flex-wrap:nowrap">${AvatarBtn(cr, 42)}
@@ -1054,6 +1148,7 @@ function ProfileBody(cr) {
   const done = S.collabs.filter((k) => k.creatorId === cr.id && k.stage === 3).length;
   const pk = (p.packages || []).filter((x) => x.name);
   const hl = (p.highlights || []).filter(Boolean);
+  const posts = S.posts.filter((po) => po.creatorId === cr.id).sort((a, b) => b.ts - a.ts);
   return `
   <div class="profile-hero">${Avatar(cr, 80)}
     <div style="min-width:0"><h2 style="margin:0;font-size:22px">${esc(cr.name)}</h2><div class="small muted">${esc(cr.handle)} · ${esc(cr.city)}</div>
@@ -1064,19 +1159,21 @@ function ProfileBody(cr) {
   <div class="stats">
     <div class="stat"><span>${t('Followers')}</span><b class="num">${fmtK(cr.followers)}</b></div>
     <div class="stat"><span>${t('Engagement')}</span><b class="num">${cr.er}%</b></div>
-    <div class="stat"><span>${t('Collabs')}</span><b class="num">${done}</b></div>
+    <div class="stat"><span>${t('Posts')}</span><b class="num">${posts.length}</b></div>
   </div>
+  ${posts.length ? `<p class="section-label">${t('Posts')}</p><div class="ig-grid">${posts.map((po) => `<button data-action="open-post" data-id="${po.id}" aria-label="Open post">${PostArt(po)}</button>`).join('')}</div>` : ''}
   <p class="section-label">${t('Rate card')}</p>
   <div style="margin-bottom:14px">${pk.length ? pk.map((x) => `<div class="rate"><span>${esc(x.name)}</span><b class="num">${Number(x.price) > 0 ? fmt$(x.price) : t('Product only')}</b></div>`).join('') : '<p class="small muted">No packages yet.</p>'}</div>
   ${hl.length ? `<p class="section-label">${t('Highlights')}</p><div class="chips" style="margin-bottom:14px">${hl.map((h) => `<span class="tag blush">▶ ${esc(h)}</span>`).join('')}</div>` : ''}
   ${notes.length ? `<p class="section-label">${t('Glow Notes')}</p>${notes.map(GlowNote).join('')}` : ''}`;
 }
 function CreatorProfile() {
-  const cr = creator(ME_CREATOR), p = profile(cr.id);
+  const cr = creator(S.me), p = profile(cr.id);
   while (p.highlights.length < 3) p.highlights.push('');
   const B = (k) => `profiles.${cr.id}.${k}`;
   return `
-  <div class="page-head"><div><h1>My Profile</h1><p class="sub">Your living media kit. Brands see this with every pitch and application.</p></div></div>
+  <div class="page-head"><div><h1>My Profile</h1><p class="sub">Your living media kit. Brands see this with every pitch and application.</p></div>
+    <div class="row"><button class="btn ghost" data-action="account">Switch / join</button><button class="btn primary" data-action="compose">+ New post</button></div></div>
   <div class="grid two">
     <div class="card pad stack">
       <p class="section-label">Photo</p>
@@ -1115,6 +1212,10 @@ function Modal() {
   if (modal.type === 'profile') return ProfileModal();
   if (modal.type === 'pitch') return PitchModal();
   if (modal.type === 'note') return NoteModal();
+  if (modal.type === 'post') return PostModal();
+  if (modal.type === 'compose') return ComposeModal();
+  if (modal.type === 'account') return AccountModal();
+  if (modal.type === 'join') return JoinModal();
   return '';
 }
 function contractHTML(c, cr) {
@@ -1217,13 +1318,13 @@ function ProfileModal() {
   if (S.role === 'brand') {
     const sent = S.collabs.some((k) => k.creatorId === cr.id && k.campaignId === S.offerCampaign);
     foot += `<button class="btn primary" data-action="offer" data-creator="${cr.id}" ${sent ? 'disabled' : ''}>${sent ? '✓ ' + t('Offer sent') : t('Send Offer')}</button>`;
-  } else if (cr.id === ME_CREATOR) foot += `<button class="btn primary" data-action="edit-profile">Edit profile</button>`;
+  } else if (cr.id === S.me) foot += `<button class="btn primary" data-action="edit-profile">Edit profile</button>`;
   return Shell(S.lang === 'ko' && S.role === 'brand' ? '크리에이터 프로필' : 'Creator profile', cr.name, ProfileBody(cr), foot);
 }
 function PitchModal() {
-  const p = profile(ME_CREATOR);
-  const taken = new Set([...S.collabs.filter((k) => k.creatorId === ME_CREATOR).map((k) => k.campaignId),
-    ...S.pitches.filter((x) => x.creatorId === ME_CREATOR && x.status === 'pending').map((x) => x.campaignId)]);
+  const p = profile(S.me);
+  const taken = new Set([...S.collabs.filter((k) => k.creatorId === S.me).map((k) => k.campaignId),
+    ...S.pitches.filter((x) => x.creatorId === S.me && x.status === 'pending').map((x) => x.campaignId)]);
   const avail = S.campaigns.filter((c) => !taken.has(c.id));
   const brands = [...new Set(avail.map((c) => c.brand))];
   const pk = p.packages.filter((x) => x.name);
@@ -1239,6 +1340,55 @@ function PitchModal() {
     <div class="err" id="pitch-err" hidden></div></div>` : Empty('You have already applied or pitched to every open campaign.');
   return Shell('Pitch a brand', 'Your idea, their product', body,
     `<button class="btn ghost" data-action="close">Cancel</button>${avail.length ? '<button class="btn primary" data-action="send-pitch">Send pitch</button>' : ''}`);
+}
+function PostModal() {
+  const po = S.posts.find((x) => x.id === modal.postId);
+  if (!po) return '';
+  const cr = creator(po.creatorId);
+  return Shell('Post', cr.name, UserPost(po, true), `<button class="btn ghost" data-action="profile" data-id="${cr.id}">← Profile</button><button class="btn primary" data-action="close">Done</button>`);
+}
+function ComposeModal() {
+  const me = creator(S.me);
+  const body = `<div class="stack">
+    <div class="row" style="gap:10px">${Avatar(me, 36)}<div><div class="strong">${esc(me.name)}</div><div class="xs muted">${esc(me.handle)}</div></div></div>
+    ${modal.img ? `<img class="ph" src="${esc(modal.img)}" alt="Preview" style="max-height:360px;width:auto;margin:0 auto">` : '<div class="drop">Photo preview</div>'}
+    <div class="row" style="justify-content:center"><label class="btn ghost sm file-btn">${modal.img ? 'Change photo' : 'Choose photo'}<input type="file" id="post-photo" accept="image/*"></label>
+      ${modal.img ? '<button class="btn ghost sm" data-action="compose-clear">Remove</button>' : ''}</div>
+    <label class="f"><span>Caption</span><textarea class="input" id="post-cap" data-m="caption" maxlength="600" placeholder="Day 3 with the rice toner. Texture first, verdict Sunday. #kbeauty">${esc(modal.caption || '')}</textarea></label>
+    <p class="xs muted" style="margin:0">#hashtags become tags. Sponsored? Start with #ad.</p>
+    <div class="err" id="post-err" hidden></div></div>`;
+  return Shell('New post', 'Share to Glow Feed', body, `<button class="btn ghost" data-action="close">Cancel</button><button class="btn primary" data-action="publish-post">Share</button>`);
+}
+function AccountModal() {
+  const rows = S.creators.map((c) => `<button class="acct-row" data-action="switch-me" data-id="${c.id}">${Avatar(c, 40)}
+    <div style="flex:1;min-width:0"><div class="strong">${esc(c.name)}${c.isNew ? ' <span class="tag butter">New</span>' : ''}</div><div class="xs muted">${esc(c.handle)} · ${fmtK(c.followers)} · ${c.platform}</div></div>
+    ${c.id === S.me ? '<span class="tag sage">Signed in</span>' : ''}</button>`).join('');
+  return Shell('Creator accounts', 'Who is posting?', `<div class="callout blush small" style="margin-bottom:12px">Demo: switch accounts to post, pitch and comment as any creator.</div>${rows}`,
+    `<button class="btn ghost" data-action="close">Close</button><button class="btn primary" data-action="join">+ Join as a new creator</button>`);
+}
+const TONES = ['Fair', 'Light', 'Light-Medium', 'Medium', 'Medium-Tan', 'Tan', 'Deep'];
+function JoinModal() {
+  const m = modal;
+  const F = (k, label, attrs = '') => `<label class="f"><span>${label}</span><input class="input" id="j-${k}" data-m="${k}" value="${esc(m[k] || '')}" ${attrs}></label>`;
+  const Sel = (k, label, opts) => `<label class="f"><span>${label}</span><select class="input" id="j-${k}" data-m="${k}">${opts.map((o) => `<option ${m[k] === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>`;
+  const body = `<div class="stack">
+    <div class="photo-up">${m.photo ? `<img class="avatar" src="${esc(m.photo)}" alt="" style="width:80px;height:80px">` : '<div class="avatar" style="width:80px;height:80px;background:var(--blush);font-size:24px">+</div>'}
+      <label class="btn ghost sm file-btn">${m.photo ? 'Change photo' : 'Add your photo'}<input type="file" id="join-photo" accept="image/*"></label></div>
+    <div class="field-grid">
+      ${F('name', 'Full name *', 'maxlength="40" autocomplete="name" placeholder="Emily Carter"')}
+      ${F('handle', 'Handle *', 'maxlength="30" autocapitalize="off" placeholder="@yourhandle"')}
+      ${Sel('platform', 'Main platform', ['TikTok', 'Reels'])}
+      ${F('followers', 'Followers *', 'type="number" inputmode="numeric" min="1000" placeholder="25000"')}
+      ${F('er', 'Engagement rate % *', 'type="number" inputmode="decimal" step="0.1" min="0.1" placeholder="6.5"')}
+      ${F('city', 'City, State *', 'maxlength="40" placeholder="Austin, TX"')}
+      ${Sel('skin', 'Skin type', SKIN_TYPES)}
+      ${Sel('tone', 'Skin tone', TONES)}
+    </div>
+    ${F('niche', 'Your niche', 'maxlength="30" placeholder="Glass skin on a budget"')}
+    <label class="f"><span>Bio</span><textarea class="input" id="j-bio" data-m="bio" maxlength="280" placeholder="What makes your skin story yours.">${esc(m.bio || '')}</textarea></label>
+    <div class="callout sky small">Brands see your profile in Creator Discovery right away. Followers and ER are self-reported in this demo; a live version verifies them via TikTok / Instagram login.</div>
+    <div class="err" id="join-err" hidden></div></div>`;
+  return Shell('Join LinkGlow', 'Create your creator profile', body, `<button class="btn ghost" data-action="close">Cancel</button><button class="btn primary" data-action="join-submit">Create profile</button>`);
 }
 function NoteModal() {
   const k = S.collabs.find((x) => x.id === modal.collabId), cr = creator(k.creatorId), c = campaign(k.campaignId);
@@ -1293,7 +1443,7 @@ const actions = {
     if (!S.offerCampaign || !campaign(S.offerCampaign)) return toast(t('Choose a campaign'));
     modal = { type: 'contract', mode: 'offer', campaignId: S.offerCampaign, creatorId: crId }; render();
   },
-  apply: ({ id }) => { modal = { type: 'contract', mode: 'apply', campaignId: id, creatorId: ME_CREATOR }; render(); },
+  apply: ({ id }) => { modal = { type: 'contract', mode: 'apply', campaignId: id, creatorId: S.me }; render(); },
   'accept-offer': ({ id }) => { const k = S.collabs.find((x) => x.id === id); modal = { type: 'contract', mode: 'accept', campaignId: k.campaignId, creatorId: k.creatorId, collabId: id }; render(); },
   'contract-view': ({ id }) => { const k = S.collabs.find((x) => x.id === id); modal = { type: 'contract', mode: 'view', campaignId: k.campaignId, creatorId: k.creatorId }; render(); },
   sign: () => {
@@ -1311,7 +1461,7 @@ const actions = {
       update((s) => { const k = s.collabs.find((x) => x.id === m.collabId); k.stage = 0; k.signedCreator = name; });
       toast('Offer accepted. The brand will ship your sample.');
     } else {
-      update((s) => s.collabs.push({ id: uid('k'), campaignId: m.campaignId, creatorId: ME_CREATOR, stage: 0, via: 'apply', signedCreator: name }));
+      update((s) => s.collabs.push({ id: uid('k'), campaignId: m.campaignId, creatorId: S.me, stage: 0, via: 'apply', signedCreator: name }));
       toast('Applied. Track it in My Collaborations.');
     }
   },
@@ -1345,10 +1495,10 @@ const actions = {
     const err = $('#pitch-err');
     if (msg.length < 20) { err.hidden = false; err.textContent = 'Give them one concrete scene (20+ characters).'; return; }
     if (!(price >= 0) || $('#pitch-price').value === '') { err.hidden = false; err.textContent = 'Set a price. Use 0 for product only.'; return; }
-    const pk = profile(ME_CREATOR).packages.filter((x) => x.name);
+    const pk = profile(S.me).packages.filter((x) => x.name);
     const cid = $('#pitch-campaign').value;
     modal = null;
-    update((s) => s.pitches.push({ id: uid('p'), creatorId: ME_CREATOR, campaignId: cid, message: msg, pkg: sel === 'custom' ? 'Custom package' : pk[Number(sel)].name, price, status: 'pending', ts: Date.now() }));
+    update((s) => s.pitches.push({ id: uid('p'), creatorId: S.me, campaignId: cid, message: msg, pkg: sel === 'custom' ? 'Custom package' : pk[Number(sel)].name, price, status: 'pending', ts: Date.now() }));
     toast('Pitch sent to ' + campaign(cid).brand + '.');
   },
   'accept-pitch': ({ id }) => {
@@ -1368,11 +1518,55 @@ const actions = {
     update((s) => { s.collabs.find((x) => x.id === m.collabId).note = { rating: m.rating, text: (m.text || '').trim(), tags: m.tags, date: Date.now() }; });
     toast(S.lang === 'ko' ? '글로우 노트가 프로필에 게시되었습니다' : 'Glow Note published to their profile.');
   },
-  'vibe-toggle': ({ v }) => update((s) => { const p = s.profiles[ME_CREATOR]; p.vibe = p.vibe.includes(v) ? p.vibe.filter((x) => x !== v) : [...p.vibe, v]; }),
-  'vibe-add': () => { const v = $('#vibe-custom').value.trim(); if (!v) return; update((s) => { const p = s.profiles[ME_CREATOR]; if (!p.vibe.includes(v)) p.vibe.push(v); }); },
-  'pkg-add': () => update((s) => { s.profiles[ME_CREATOR].packages.push({ name: '', price: '' }); }),
-  'pkg-del': ({ i }) => update((s) => { s.profiles[ME_CREATOR].packages.splice(Number(i), 1); }),
-  'photo-remove': () => update((s) => { s.profiles[ME_CREATOR].photo = ''; }),
+  'vibe-toggle': ({ v }) => update((s) => { const p = s.profiles[S.me]; p.vibe = p.vibe.includes(v) ? p.vibe.filter((x) => x !== v) : [...p.vibe, v]; }),
+  'vibe-add': () => { const v = $('#vibe-custom').value.trim(); if (!v) return; update((s) => { const p = s.profiles[S.me]; if (!p.vibe.includes(v)) p.vibe.push(v); }); },
+  'pkg-add': () => update((s) => { s.profiles[S.me].packages.push({ name: '', price: '' }); }),
+  'pkg-del': ({ i }) => update((s) => { s.profiles[S.me].packages.splice(Number(i), 1); }),
+  'photo-remove': () => update((s) => { s.profiles[S.me].photo = ''; }),
+  'feed-filter': ({ v }) => update((s) => { s.feedFilter = v; }),
+  'open-post': ({ id }) => { modal = { type: 'post', postId: id }; render(); },
+  'del-post': ({ id }) => { if (modal && modal.type === 'post') modal = null; update((s) => { s.posts = s.posts.filter((x) => x.id !== id); delete s.comments[id]; }); toast('Post deleted.'); },
+  compose: () => { modal = { type: 'compose', img: '', caption: '' }; render(); },
+  'compose-clear': () => { modal.img = ''; render(); },
+  'publish-post': () => {
+    const caption = (modal.caption || '').trim();
+    if (!modal.img && caption.length < 3) { const e = $('#post-err'); e.hidden = false; e.textContent = 'Add a photo or write a caption.'; return; }
+    const palettes = [['#F6E1DA', '#E9B8A8'], ['#E3EBDF', '#B8CBB0'], ['#E1E8F0', '#B9C6DA'], ['#F6EED6', '#E4CF95'], ['#EFE4F2', '#CDB6D6']];
+    const words = caption.replace(/#\S+/g, '').trim().split(/\s+/).slice(0, 3).join(' ') || 'New post';
+    const post = { id: uid('po'), creatorId: S.me, img: modal.img, art: { g: palettes[Math.floor(Math.random() * palettes.length)], label: words }, caption, ts: Date.now(), likes: 0 };
+    modal = null;
+    update((s) => { s.posts.push(post); s.tab.creator = 'glow'; s.feedFilter = 'all'; });
+    window.scrollTo(0, 0);
+    toast('Posted to Glow Feed.');
+  },
+  account: () => { modal = { type: 'account' }; render(); },
+  'switch-me': ({ id }) => { modal = null; update((s) => { s.me = id; }); toast('Signed in as ' + creator(id).name + '.'); },
+  join: () => { modal = { type: 'join', platform: 'TikTok', skin: 'Combination', tone: 'Medium', photo: '' }; render(); },
+  'join-submit': () => {
+    const m = modal, err = $('#join-err');
+    const handle = '@' + String(m.handle || '').replace(/^@+/, '').replace(/[^a-z0-9._]/gi, '').toLowerCase();
+    const followers = Number(m.followers), er = Number(m.er);
+    const problems = [];
+    if (String(m.name || '').trim().length < 2) problems.push('Add your name.');
+    if (handle.length < 4) problems.push('Add your handle.');
+    else if (S.creators.some((c) => c.handle === handle)) problems.push(handle + ' is already on LinkGlow.');
+    if (!(followers >= 1000)) problems.push('Followers must be 1,000 or more.');
+    if (!(er > 0 && er <= 50)) problems.push('Engagement rate should be between 0.1 and 50.');
+    if (String(m.city || '').trim().length < 2) problems.push('Add your city.');
+    if (problems.length) { err.hidden = false; err.innerHTML = problems.map(esc).join('<br>'); return; }
+    const hues = ['#F6E1DA', '#E3EBDF', '#E1E8F0', '#F6EED6', '#EFE4F2'];
+    const fee = Math.max(100, Math.round(followers / 1000 * 7 / 10) * 10);
+    const id = 'cr' + Date.now().toString(36);
+    const cr = { id, name: m.name.trim(), handle, platform: m.platform, followers, er, niche: (m.niche || '').trim() || 'K-Beauty Routines', tone: m.tone, skin: m.skin, city: m.city.trim(), fee, hue: hues[S.creators.length % hues.length], isNew: true };
+    modal = null;
+    update((s) => {
+      s.creators.push(cr);
+      s.profiles[id] = { photo: m.photo || '', bio: (m.bio || '').trim(), vibe: [], packages: [{ name: m.platform === 'TikTok' ? 'TikTok video' : 'Reel', price: fee }, { name: 'Seeding · product only', price: 0 }], highlights: [] };
+      s.me = id; s.role = 'creator'; s.tab.creator = 'profile';
+    });
+    window.scrollTo(0, 0);
+    toast('Welcome, ' + cr.name.split(' ')[0] + '. Brands can find you now.');
+  },
   close: () => { modal = null; render(); },
   'close-scrim': (_, el, e) => { if (e.target === el) actions.close(); },
   reset: () => { S = seed(); modal = null; save(); render(); toast('Demo reset.'); }
@@ -1390,9 +1584,10 @@ document.addEventListener('input', (e) => {
     if (el.dataset.bind.startsWith('draft.')) { delete S.draftErrors[el.dataset.bind.slice(6)]; }
     save();
     if (el.id.startsWith('d-')) refreshPreview();
-    if (el.dataset.bind.startsWith('profiles.')) { const pv = $('#profile-preview'); if (pv) pv.innerHTML = ProfileBody(creator(ME_CREATOR)); }
+    if (el.dataset.bind.startsWith('profiles.')) { const pv = $('#profile-preview'); if (pv) pv.innerHTML = ProfileBody(creator(S.me)); }
   }
   if (el.id === 'note-text' && modal) modal.text = el.value;
+  if (el.dataset.m && modal) modal[el.dataset.m] = el.value;
   if (el.dataset.filter && el.tagName === 'INPUT') { setPath(el.dataset.filter, el.value); save(); render(); }
   if (el.id === 'up-caption') {
     const ok = ftcOk(el.value), live = $('#ftc-live');
@@ -1403,19 +1598,23 @@ document.addEventListener('change', (e) => {
   const el = e.target;
   if (el.dataset.filter && el.tagName === 'SELECT') { setPath(el.dataset.filter, el.value); save(); render(); }
   if (el.dataset.bind && el.tagName === 'SELECT') { setPath(el.dataset.bind, el.value); save(); render(); }
-  if (el.id === 'pitch-pkg') { const x = profile(ME_CREATOR).packages.filter((p) => p.name)[Number(el.value)]; if (x) $('#pitch-price').value = x.price; }
-  if (el.id === 'photo-input' && el.files[0]) loadPhoto(el.files[0]);
+  if (el.id === 'pitch-pkg') { const x = profile(S.me).packages.filter((p) => p.name)[Number(el.value)]; if (x) $('#pitch-price').value = x.price; }
+  if (el.dataset.m && modal) modal[el.dataset.m] = el.value;
+  const file = el.files && el.files[0];
+  if (el.id === 'photo-input' && file) loadImage(file, 320, 320, (url) => { update((s) => { s.profiles[s.me].photo = url; }); toast('Photo updated.'); });
+  if (el.id === 'join-photo' && file) loadImage(file, 320, 320, (url) => { modal.photo = url; render(); });
+  if (el.id === 'post-photo' && file) loadImage(file, 640, 800, (url) => { modal.img = url; render(); });
 });
-// Downscale to a 320px square JPEG so the photo fits in localStorage.
-function loadPhoto(file) {
+// Center-crop and downscale to a small JPEG so photos fit in localStorage.
+function loadImage(file, w, h, done) {
   const url = URL.createObjectURL(file), img = new Image();
   img.onload = () => {
-    const side = Math.min(img.width, img.height), cv = document.createElement('canvas');
-    cv.width = cv.height = 320;
-    cv.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, 320, 320);
+    const scale = Math.min(img.width / w, img.height / h), sw = w * scale, sh = h * scale;
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, 0, 0, w, h);
     URL.revokeObjectURL(url);
-    update((s) => { s.profiles[ME_CREATOR].photo = cv.toDataURL('image/jpeg', 0.82); });
-    toast('Photo updated.');
+    done(cv.toDataURL('image/jpeg', 0.8));
   };
   img.onerror = () => { URL.revokeObjectURL(url); toast('That file is not an image.'); };
   img.src = url;
@@ -1426,7 +1625,7 @@ document.addEventListener('submit', (e) => {
     const id = e.target.dataset.collab, text = e.target.querySelector('input').value.trim();
     if (!text) return;
     const brand = S.role === 'brand';
-    update((s) => { (s.comments[id] = s.comments[id] || []).push({ id: uid('m'), by: brand ? 'brand' : ME_CREATOR, name: brand ? ME_BRAND : creator(ME_CREATOR).name, text, ts: Date.now() }); });
+    update((s) => { (s.comments[id] = s.comments[id] || []).push({ id: uid('m'), by: brand ? 'brand' : S.me, name: brand ? ME_BRAND : creator(S.me).name, text, ts: Date.now() }); });
     return;
   }
   if (e.target.id !== 'create-form') return;

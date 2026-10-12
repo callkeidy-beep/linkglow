@@ -26,6 +26,10 @@ Open `index.html` in a browser. Deploy: import this repo in Vercel (no build com
 | Creator | Accounts & Join | Account chip in the header switches between creators (post, pitch, comment as anyone). **Join as a new creator** registers name, handle, platform, followers, ER, city, skin type/tone, niche, bio and photo; the new creator shows up in Brand Discovery with a "New" tag. |
 | Creator | Posts | Instagram-style posts (photo cropped to 4:5 + caption with #hashtags) in the Glow Feed and a 3-column grid on every profile. Likes, comments, delete own post. Feed filter: All / Creator posts / Collab results. |
 
+| All | Logo | Tapping the LinkGlow logo returns to the first tab of the current view. |
+| Author | Edit / delete | The ⋯ menu on your own post or comment edits it (marked "edited") or deletes it after a confirm step. Others see **Report**. |
+| Admin (KO/EN) | Moderation | Third view. Queue of every post, collab post and comment, sorted by reports. Hide / unhide (hidden items stay visible only to the author and moderators), edit (marked "edited by moderator"), delete, dismiss report. Moderators can also comment as "LinkGlow Team". |
+
 "Reset demo" in the footer restores the seed data.
 
 ## Package for App Store / Google Play (Capacitor)

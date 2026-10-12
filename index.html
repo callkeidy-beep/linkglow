@@ -276,6 +276,19 @@
   .acct-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 8px; border: 0; background: none; border-radius: var(--r-sm); text-align: left; }
   .acct-row:hover { background: var(--sunk); }
 
+  .dots { border: 0; background: none; width: 30px; height: 30px; border-radius: 50%; font-size: 18px; line-height: 1; color: var(--muted); flex: none; }
+  .dots:hover { background: var(--sunk); color: var(--ink); }
+  .comment .dots { width: 24px; height: 24px; font-size: 15px; }
+  .hidden-note { background: var(--sunk); border: 1px dashed var(--line); border-radius: var(--r-sm); padding: 8px 12px; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .is-hidden { opacity: .55; }
+  .sheet-btn { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 14px 8px; font-size: 15px; font-weight: 600; border-top: 1px solid var(--line); }
+  .sheet-btn:first-child { border-top: 0; }
+  .sheet-btn.danger { color: var(--danger); }
+  .logo-btn { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; }
+  .mod-row { display: flex; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); align-items: flex-start; flex-wrap: wrap; }
+  .mod-row:first-child { border-top: 0; }
+  .mod-row .grow { flex: 1 1 260px; min-width: 0; }
+
   /* Mobile bottom nav */
   .bottom-nav { display: none; }
 
@@ -311,6 +324,7 @@
     .pkg-row { grid-template-columns: 1fr 88px 36px; }
     .post-head > .tag { display: none; }
     .bottom-nav button { font-size: 10px; }
+    .seg button { padding: 7px 11px; }
     .foot { padding-bottom: calc(96px + var(--safe-b)); }
   }
 </style>
@@ -416,7 +430,31 @@ const KO = {
   'Collab results': '협업 결과',
   'Creator posts and finished collabs. Real numbers. Real notes.': '크리에이터 게시물과 끝난 협업. 진짜 숫자, 진짜 후기.',
   'Posts': '게시물',
-  'New': '신규'
+  'New': '신규',
+  'Moderation': '콘텐츠 관리',
+  'Every post and comment in one place. Hide, edit or delete.': '모든 게시물과 댓글을 한곳에서. 숨기기, 수정, 삭제.',
+  'Reported': '신고됨',
+  'Hidden': '숨김',
+  'Comments': '댓글',
+  'Edit': '수정',
+  'Hide': '숨기기',
+  'Unhide': '숨김 해제',
+  'Delete': '삭제',
+  'Dismiss report': '신고 기각',
+  'Report': '신고',
+  'Cancel': '취소',
+  'Save': '저장',
+  'Delete this for good?': '완전히 삭제할까요?',
+  'Comments under it go too.': '달린 댓글도 함께 지워집니다.',
+  'This cannot be undone.': '되돌릴 수 없습니다.',
+  'Hidden by moderator · only the author and moderators see this': '운영자가 숨김 · 작성자와 운영자만 볼 수 있습니다',
+  'edited': '수정됨',
+  'edited by moderator': '운영자 수정',
+  'Post': '등록',
+  'Post item': '게시물',
+  'Collab post': '협업 게시물',
+  'Comment': '댓글',
+  'Nothing to review.': '검토할 항목이 없습니다.'
 };
 
 /* ---------- Seed data ---------- */
@@ -459,7 +497,7 @@ function seed() {
   const s = {
     role: 'brand',
     lang: 'en',
-    tab: { brand: 'create', creator: 'feed' },
+    tab: { brand: 'create', creator: 'feed', admin: 'moderation' },
     campaigns: [
       { id: 'c1', brand: 'Dewlab Seoul', product: 'Rice Ferment Barrier Toner', category: 'Skincare', skin: ['Dry', 'Sensitive'], concerns: ['Dryness', 'Sensitivity'], comp: 'affiliate', amount: 15, price: 28, slots: 20, ship: 'kr', shipFrom: 'Seongsu-dong, Seoul', days: 9, notes: 'Under $800 de minimis. Cosmetic, non-drug.', brief: 'Show a 7-day barrier reset. Morning + night routine, texture shot, honest day-7 verdict.', deadline: '2026-11-08', created: 5 },
       { id: 'c2', brand: 'Haneul Lab', product: 'Mugwort Calming Sun Fluid SPF50+', category: 'Sunscreen', skin: ['Oily', 'Combination', 'Acne-prone'], concerns: ['Sun Protection', 'Oiliness'], comp: 'fixed', amount: 300, price: 24, slots: 8, ship: 'us', shipFrom: 'Haneul US 3PL, Carson CA', days: 3, notes: 'Ships from US stock. No customs delay.', brief: 'No white cast test on camera. Reapply over makeup. Show finish at hour 6.', deadline: '2026-10-30', created: 9 },
@@ -495,6 +533,8 @@ function seed() {
     me: 'cr1',             // Creator view is signed in as this creator
     posts: seedPosts(),
     feedFilter: 'all',
+    modFilter: 'all',
+    myReports: [],
     profiles: seedProfiles(),
     pitches: [
       { id: 'p1', creatorId: 'cr8', campaignId: 'c1', message: 'A 3-product shelf, rebuilt around your toner. Sensitive skin, 7 days, no other actives. Calm skin on day 7 is the hook.', pkg: 'TikTok video', price: 400, status: 'pending', ts: hoursAgo(5) },
@@ -513,7 +553,10 @@ function seed() {
         { id: 'm6', by: 'cr3', name: 'Sofia Ramirez', text: 'Three products and my skin would finally stop yelling at me.', ts: hoursAgo(2) },
         { id: 'm7', by: 'brand', name: 'Dewlab Seoul', text: 'Emily, this shelf is exactly why we liked your pitch. Talk soon.', ts: hoursAgo(1) }
       ],
-      po4: [{ id: 'm8', by: 'cr7', name: 'Imani Johnson', text: 'The middle one. It is always the middle one.', ts: hoursAgo(20) }]
+      po4: [
+        { id: 'm8', by: 'cr7', name: 'Imani Johnson', text: 'The middle one. It is always the middle one.', ts: hoursAgo(20) },
+        { id: 'm9', by: 'cr6', name: 'Kayla Nguyen', text: 'DM me for cheap followers 🔥 link in bio', ts: hoursAgo(12), reports: 3 }
+      ]
     },
     liked: []
   };
@@ -560,7 +603,8 @@ let storageWarned = false;
 function migrate(s) {
   if (!s) return null;
   const d = seed();
-  for (const k of ['creators', 'me', 'posts', 'feedFilter']) if (s[k] === undefined) s[k] = d[k];
+  for (const k of ['creators', 'me', 'posts', 'feedFilter', 'modFilter', 'myReports']) if (s[k] === undefined) s[k] = d[k];
+  if (!s.tab.admin) s.tab.admin = d.tab.admin;
   return s;
 }
 let modal = null;   // { type: 'contract' | 'upload' | 'tracking', ... } — transient, not persisted
@@ -587,7 +631,7 @@ function toast(msg) {
 /* ---------- Helpers ---------- */
 const $ = (sel, root = document) => root.querySelector(sel);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const t = (s) => (S.role === 'brand' && S.lang === 'ko' && KO[s]) ? KO[s] : s;
+const t = (s) => (S.role !== 'creator' && S.lang === 'ko' && KO[s]) ? KO[s] : s;
 const fmtK = (n) => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K' : String(n);
 const fmt$ = (n) => '$' + Math.round(n).toLocaleString('en-US');
 const pct = (n) => (n * 100).toFixed(1) + '%';
@@ -659,6 +703,7 @@ const ICON = {
   box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>',
   chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
   feed: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3.5 19 6v5.5c0 4.3-3 7.6-7 9-4-1.4-7-4.7-7-9V6z"/><path d="m9 12 2 2 4-4" stroke-linecap="round"/></svg>',
   heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20z"/></svg>',
   user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.6 4-5.4 7.5-5.4s6.3 1.8 7.5 5.4"/></svg>',
   flow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 12h3M14 12h3"/></svg>'
@@ -677,6 +722,13 @@ function tabsFor(role) {
       { id: 'analytics', label: t('Performance'), short: S.lang === 'ko' ? '성과' : 'Stats', icon: ICON.chart }
     ];
   }
+  if (role === 'admin') {
+    const flagged = modItems().filter((x) => x.obj.reports && !x.obj.hidden).length;
+    return [
+      { id: 'moderation', label: t('Moderation'), short: S.lang === 'ko' ? '관리' : 'Moderate', icon: ICON.shield, badge: flagged },
+      { id: 'glow', label: t('Glow Feed'), short: S.lang === 'ko' ? '피드' : 'Feed', icon: ICON.heart }
+    ];
+  }
   const action = S.collabs.filter((k) => k.creatorId === S.me && (k.stage === -1 || k.stage === 1 || k.stage === 2)).length;
   return [
     { id: 'feed', label: 'Campaigns', short: 'Campaigns', icon: ICON.feed },
@@ -692,15 +744,16 @@ function Header() {
   const brandLabel = S.lang === 'ko' ? '브랜드 (KR/EN)' : 'Brand (KR/EN)';
   return `
   <header class="top"><div class="top-inner">
-    <div class="logo"><span class="logo-dot"></span>LinkGlow <small>K-Beauty × US Creators</small></div>
+    <button class="logo logo-btn" data-action="home" aria-label="LinkGlow home"><span class="logo-dot"></span>LinkGlow <small>K-Beauty × US Creators</small></button>
     <div class="spacer"></div>
-    ${S.role === 'brand' ? `<div class="seg sm" role="group" aria-label="Language">
+    ${S.role !== 'creator' ? `<div class="seg sm" role="group" aria-label="Language">
       <button class="${S.lang === 'ko' ? 'on' : ''}" data-action="lang" data-v="ko">KO</button>
       <button class="${S.lang === 'en' ? 'on' : ''}" data-action="lang" data-v="en">EN</button></div>` : ''}
     ${S.role === 'creator' ? `<button class="acct" data-action="account" aria-label="Switch creator account">${Avatar(creator(S.me), 28)}<span>${esc(creator(S.me).handle)}</span>▾</button>` : ''}
     <div class="seg" role="tablist" aria-label="Switch view">
       <button class="${S.role === 'brand' ? 'on' : ''}" data-action="role" data-v="brand">${brandLabel}</button>
       <button class="${S.role === 'creator' ? 'on' : ''}" data-action="role" data-v="creator">Creator (EN)</button>
+      <button class="${S.role === 'admin' ? 'on' : ''}" data-action="role" data-v="admin">${S.lang === 'ko' ? '운영자' : 'Admin'}</button>
     </div>
   </div></header>`;
 }
@@ -1066,8 +1119,8 @@ function Sparkline(data) {
 function GlowFeed() {
   const f = S.feedFilter;
   const items = [
-    ...(f !== 'posts' ? S.collabs.filter((k) => k.stage === 3).map((k) => ({ ts: k.ts || 0, html: () => Post(k) })) : []),
-    ...(f !== 'collabs' ? S.posts.map((po) => ({ ts: po.ts, html: () => UserPost(po) })) : [])
+    ...(f !== 'posts' ? S.collabs.filter((k) => k.stage === 3 && canSee('collab', k)).map((k) => ({ ts: k.ts || 0, html: () => Post(k) })) : []),
+    ...(f !== 'collabs' ? S.posts.filter((po) => canSee('post', po)).map((po) => ({ ts: po.ts, html: () => UserPost(po) })) : [])
   ].sort((a, b) => b.ts - a.ts);
   const me = creator(S.me);
   return `
@@ -1078,42 +1131,100 @@ function GlowFeed() {
     ${items.length ? items.map((x) => x.html()).join('') : Empty('Nothing here yet.')}
   </div>`;
 }
+/* ----- Ownership & moderation ----- */
+const isAdmin = () => S.role === 'admin';
+const ADMIN_NAME = 'LinkGlow Team';
+function owns(kind, obj) {
+  if (kind === 'comment') {
+    if (S.role === 'creator') return obj.by === S.me;
+    if (S.role === 'brand') return obj.by === 'brand' && obj.name === ME_BRAND;
+    return obj.by === 'admin';
+  }
+  return S.role === 'creator' && obj.creatorId === S.me;
+}
+const canSee = (kind, obj) => !obj.hidden || isAdmin() || owns(kind, obj);
+function findItem(kind, id, parent) {
+  if (kind === 'post') return S.posts.find((x) => x.id === id);
+  if (kind === 'collab') return S.collabs.find((x) => x.id === id);
+  return (S.comments[parent] || []).find((x) => x.id === id);
+}
+const editedLabel = (obj) => obj.edited ? ` · ${obj.editedBy === 'admin' ? t('edited by moderator') : t('edited')}` : '';
+const Dots = (kind, id, parent = '') => `<button class="dots" data-action="menu" data-kind="${kind}" data-id="${id}" data-parent="${parent}" aria-label="More actions">⋯</button>`;
+const HiddenNote = (obj) => obj.hidden ? `<div class="hidden-note">🚫 ${t('Hidden by moderator · only the author and moderators see this')}</div>` : '';
+function modItems() {
+  return [
+    ...S.posts.map((po) => ({ kind: 'post', id: po.id, obj: po, author: creator(po.creatorId)?.name || '—', text: po.caption, ts: po.ts })),
+    ...S.collabs.filter((k) => k.stage === 3).map((k) => ({ kind: 'collab', id: k.id, obj: k, author: creator(k.creatorId).name, text: k.caption || '', ts: k.ts || 0 })),
+    ...Object.entries(S.comments).flatMap(([pid, arr]) => arr.map((m) => ({ kind: 'comment', id: m.id, parent: pid, obj: m, author: m.name, text: m.text, ts: m.ts })))
+  ];
+}
+function Moderation() {
+  const all = modItems(), f = S.modFilter;
+  const list = all.filter((x) => f === 'reported' ? x.obj.reports : f === 'hidden' ? x.obj.hidden : true)
+    .sort((a, b) => (b.obj.reports || 0) - (a.obj.reports || 0) || b.ts - a.ts);
+  const kindLabel = { post: (t('Post item') === 'Post item' ? 'Post' : t('Post item')), collab: t('Collab post'), comment: t('Comment') };
+  const count = (fn) => all.filter(fn).length;
+  return `
+  <div class="page-head"><div><h1>${t('Moderation')}</h1><p class="sub">${t('Every post and comment in one place. Hide, edit or delete.')}</p></div></div>
+  <div class="kpis">
+    <div class="card kpi"><span>${t('Posts')}</span><b class="num">${count((x) => x.kind !== 'comment')}</b></div>
+    <div class="card kpi"><span>${t('Comments')}</span><b class="num">${count((x) => x.kind === 'comment')}</b></div>
+    <div class="card kpi"><span>${t('Reported')}</span><b class="num">${count((x) => x.obj.reports)}</b></div>
+    <div class="card kpi"><span>${t('Hidden')}</span><b class="num">${count((x) => x.obj.hidden)}</b></div>
+  </div>
+  <div class="chips" style="margin-bottom:14px">${[['all', 'All'], ['reported', 'Reported'], ['hidden', 'Hidden']].map(([v, l]) => `<button class="chip ${f === v ? 'on' : ''}" data-action="mod-filter" data-v="${v}">${t(l)}</button>`).join('')}</div>
+  <div class="card pad">${list.length ? list.map((x) => {
+    const o = x.obj, d = `data-kind="${x.kind}" data-id="${x.id}" data-parent="${x.parent || ''}"`;
+    return `<div class="mod-row ${o.hidden ? 'is-hidden' : ''}">
+      <div class="grow">
+        <div class="row" style="margin-bottom:4px"><span class="tag ${x.kind === 'comment' ? 'sky' : 'blush'}">${kindLabel[x.kind]}</span>
+          ${o.reports ? `<span class="tag" style="background:#F6DCD8;color:var(--danger)">⚑ ${t('Reported')} ${o.reports}</span>` : ''}
+          ${o.hidden ? `<span class="tag">${t('Hidden')}</span>` : ''}<span class="xs muted">${esc(x.author)} · ${ago(x.ts)}${editedLabel(o)}</span></div>
+        <div class="small clamp2">${esc(x.text) || '<span class="muted">(photo only)</span>'}</div>
+      </div>
+      <div class="row">
+        ${o.reports ? `<button class="btn ghost sm" data-action="item-dismiss" ${d}>${t('Dismiss report')}</button>` : ''}
+        <button class="btn ghost sm" data-action="item-edit" ${d}>${t('Edit')}</button>
+        <button class="btn ${o.hidden ? 'ghost' : 'blush'} sm" data-action="item-hide" ${d}>${o.hidden ? t('Unhide') : t('Hide')}</button>
+        ${x.kind !== 'collab' ? `<button class="btn ghost sm" data-action="item-delete" ${d} style="color:var(--danger)">${t('Delete')}</button>` : ''}
+      </div></div>`;
+  }).join('') : `<p class="small muted" style="margin:0">${t('Nothing to review.')}</p>`}</div>`;
+}
 const linkTags = (text) => esc(text).replace(/#([\w가-힣]+)/g, '<span class="hash">#$1</span>');
 function PostArt(po, cls = 'ph') {
   if (po.img) return `<img class="${cls}" src="${esc(po.img)}" alt="${esc(po.caption.slice(0, 80))}" loading="lazy">`;
   return `<div class="${cls} art" style="background:linear-gradient(135deg,${po.art.g[0]},${po.art.g[1]})" role="img" aria-label="${esc(po.art.label)}"><span>${esc(po.art.label)}</span></div>`;
 }
 function UserPost(po, bare) {
-  const cr = creator(po.creatorId), cs = S.comments[po.id] || [], liked = S.liked.includes(po.id);
-  const mine = S.role === 'creator' && po.creatorId === S.me;
-  const asName = S.role === 'brand' ? ME_BRAND : creator(S.me).name;
+  const cr = creator(po.creatorId), cs = (S.comments[po.id] || []).filter((m) => canSee('comment', m)), liked = S.liked.includes(po.id);
   return `
-  <article class="${bare ? '' : 'card post'}">
+  <article class="${bare ? '' : 'card post'} ${po.hidden ? 'is-hidden' : ''}">
+    ${HiddenNote(po)}
     <div class="row" style="gap:10px;flex-wrap:nowrap;margin-bottom:12px">${AvatarBtn(cr, 42)}
       <div style="min-width:0;flex:1"><button class="link-plain strong" data-action="profile" data-id="${cr.id}">${esc(cr.name)}</button>
-        <div class="xs muted">${esc(cr.handle)} · ${cr.platform} · ${ago(po.ts)}</div></div>
-      ${mine ? `<button class="link small" data-action="del-post" data-id="${po.id}">Delete</button>` : ''}</div>
+        <div class="xs muted">${esc(cr.handle)} · ${cr.platform} · ${ago(po.ts)}${editedLabel(po)}</div></div>
+      ${Dots('post', po.id)}</div>
     ${PostArt(po)}
     <div class="row">
       <button class="react ${liked ? 'on' : ''}" data-action="like" data-id="${po.id}" aria-pressed="${liked}">♥ ${(po.likes || 0) + (liked ? 1 : 0)}</button>
       <span class="small muted">${cs.length} comment${cs.length === 1 ? '' : 's'}</span>
     </div>
     ${po.caption ? `<p class="post-cap"><b>${esc(cr.handle)}</b> ${linkTags(po.caption)}</p>` : ''}
-    ${cs.length ? `<div class="comments">${cs.map(Comment).join('')}</div>` : ''}
+    ${cs.length ? `<div class="comments">${cs.map((m) => Comment(m, po.id)).join('')}</div>` : ''}
     <form class="comment-form" data-collab="${po.id}">
-      <input class="input" id="cm-${po.id}${bare ? '-m' : ''}" maxlength="280" autocomplete="off" placeholder="${t('Add a comment…')} (${esc(asName)})">
+      <input class="input" id="cm-${po.id}${bare ? '-m' : ''}" maxlength="280" autocomplete="off" placeholder="${t('Add a comment…')} (${esc(asName())})">
       <button class="btn primary sm" type="submit">${t('Post')}</button>
     </form>
   </article>`;
 }
 function Post(k) {
-  const cr = creator(k.creatorId), c = campaign(k.campaignId), m = metrics(k), cs = S.comments[k.id] || [], liked = S.liked.includes(k.id);
-  const asName = S.role === 'brand' ? ME_BRAND : creator(S.me).name;
+  const cr = creator(k.creatorId), c = campaign(k.campaignId), m = metrics(k), cs = (S.comments[k.id] || []).filter((x) => canSee('comment', x)), liked = S.liked.includes(k.id);
   return `
-  <article class="card post">
+  <article class="card post ${k.hidden ? 'is-hidden' : ''}">
+    ${HiddenNote(k)}
     <div class="row post-head" style="gap:10px;flex-wrap:nowrap">${AvatarBtn(cr, 42)}
       <div style="min-width:0;flex:1"><button class="link-plain strong" data-action="profile" data-id="${cr.id}">${esc(cr.name)}</button> <span class="small muted">× ${esc(c.brand)}</span>
-        <div class="xs muted">${esc(cr.handle)} · ${cr.platform} · ${ago(k.ts)}</div></div>${compTag(c)}</div>
+        <div class="xs muted">${esc(cr.handle)} · ${cr.platform} · ${ago(k.ts)}${editedLabel(k)}</div></div>${compTag(c)}${Dots('collab', k.id)}</div>
     <p class="post-cap">${esc(k.caption || 'New collab with ' + c.brand + '.')}</p>
     ${productArt(c)}
     <div class="post-metrics"><span><b>${esc(c.product)}</b></span><span><b class="num">${m.clicks.toLocaleString()}</b> clicks</span><span><b class="num">${m.codeUses}</b> code uses</span><span class="mono">${m.code}</span></div>
@@ -1124,17 +1235,19 @@ function Post(k) {
       <span class="spacer"></span>
       ${k.post ? `<a class="link small" href="${esc(k.post)}" target="_blank" rel="noopener">View post ↗</a>` : ''}
     </div>
-    ${cs.length ? `<div class="comments">${cs.map(Comment).join('')}</div>` : ''}
+    ${cs.length ? `<div class="comments">${cs.map((x) => Comment(x, k.id)).join('')}</div>` : ''}
     <form class="comment-form" data-collab="${k.id}">
-      <input class="input" id="cm-${k.id}" maxlength="280" autocomplete="off" placeholder="${t('Add a comment…')} (${esc(asName)})">
+      <input class="input" id="cm-${k.id}" maxlength="280" autocomplete="off" placeholder="${t('Add a comment…')} (${esc(asName())})">
       <button class="btn primary sm" type="submit">${t('Post')}</button>
     </form>
   </article>`;
 }
-function Comment(m) {
-  const cr = m.by !== 'brand' && creator(m.by);
-  const av = cr ? AvatarBtn(cr, 30) : `<div class="avatar" style="width:30px;height:30px;font-size:11px;background:var(--ink);color:#fff">${initials(m.name)}</div>`;
-  return `<div class="comment">${av}<div class="bubble"><div class="xs"><b>${esc(m.name)}</b>${m.by === 'brand' ? ' <span class="tag blush" style="padding:0 7px;font-size:10px">Brand</span>' : ''} <span class="muted">· ${ago(m.ts)}</span></div><div>${esc(m.text)}</div></div></div>`;
+const asName = () => S.role === 'brand' ? ME_BRAND : S.role === 'admin' ? ADMIN_NAME : creator(S.me).name;
+function Comment(m, parent) {
+  const cr = m.by !== 'brand' && m.by !== 'admin' && creator(m.by);
+  const av = cr ? AvatarBtn(cr, 30) : `<div class="avatar" style="width:30px;height:30px;font-size:11px;background:${m.by === 'admin' ? 'var(--rose)' : 'var(--ink)'};color:#fff">${m.by === 'admin' ? 'LG' : initials(m.name)}</div>`;
+  const badge = m.by === 'brand' ? ' <span class="tag blush" style="padding:0 7px;font-size:10px">Brand</span>' : m.by === 'admin' ? ' <span class="tag sage" style="padding:0 7px;font-size:10px">Team</span>' : '';
+  return `<div class="comment ${m.hidden ? 'is-hidden' : ''}">${av}<div class="bubble"><div class="xs"><b>${esc(m.name)}</b>${badge} <span class="muted">· ${ago(m.ts)}${editedLabel(m)}${m.hidden ? ' · 🚫 ' + t('Hidden') : ''}</span></div><div>${esc(m.text)}</div></div>${Dots('comment', m.id, parent)}</div>`;
 }
 function GlowNote(k) {
   const c = campaign(k.campaignId);
@@ -1148,7 +1261,7 @@ function ProfileBody(cr) {
   const done = S.collabs.filter((k) => k.creatorId === cr.id && k.stage === 3).length;
   const pk = (p.packages || []).filter((x) => x.name);
   const hl = (p.highlights || []).filter(Boolean);
-  const posts = S.posts.filter((po) => po.creatorId === cr.id).sort((a, b) => b.ts - a.ts);
+  const posts = S.posts.filter((po) => po.creatorId === cr.id && canSee('post', po)).sort((a, b) => b.ts - a.ts);
   return `
   <div class="profile-hero">${Avatar(cr, 80)}
     <div style="min-width:0"><h2 style="margin:0;font-size:22px">${esc(cr.name)}</h2><div class="small muted">${esc(cr.handle)} · ${esc(cr.city)}</div>
@@ -1213,6 +1326,8 @@ function Modal() {
   if (modal.type === 'pitch') return PitchModal();
   if (modal.type === 'note') return NoteModal();
   if (modal.type === 'post') return PostModal();
+  if (modal.type === 'menu') return MenuModal();
+  if (modal.type === 'edit') return EditModal();
   if (modal.type === 'compose') return ComposeModal();
   if (modal.type === 'account') return AccountModal();
   if (modal.type === 'join') return JoinModal();
@@ -1347,6 +1462,30 @@ function PostModal() {
   const cr = creator(po.creatorId);
   return Shell('Post', cr.name, UserPost(po, true), `<button class="btn ghost" data-action="profile" data-id="${cr.id}">← Profile</button><button class="btn primary" data-action="close">Done</button>`);
 }
+function MenuModal() {
+  const { kind, id, parent } = modal, obj = findItem(kind, id, parent);
+  if (!obj) return '';
+  const d = `data-kind="${kind}" data-id="${id}" data-parent="${parent || ''}"`;
+  if (modal.confirm) {
+    return Shell(t('Delete'), t('Delete this for good?'), `<p class="small muted" style="margin:0">${kind === 'post' ? t('Comments under it go too.') + ' ' : ''}${t('This cannot be undone.')}</p>`,
+      `<button class="btn ghost" data-action="close">${t('Cancel')}</button><button class="btn primary" style="background:var(--danger)" data-action="item-delete-yes" ${d}>${t('Delete')}</button>`);
+  }
+  const mine = owns(kind, obj), admin = isAdmin(), B = (action, label, cls = '') => `<button class="sheet-btn ${cls}" data-action="${action}" ${d}>${label}</button>`;
+  let btns = '';
+  if (mine || admin) btns += B('item-edit', '✎ ' + t('Edit'));
+  if (admin) btns += B('item-hide', obj.hidden ? '◉ ' + t('Unhide') : '◌ ' + t('Hide'));
+  if (admin && obj.reports) btns += B('item-dismiss', '✓ ' + t('Dismiss report'));
+  if ((mine || admin) && kind !== 'collab') btns += B('item-delete', '🗑 ' + t('Delete'), 'danger');
+  if (!mine && !admin) btns += S.myReports.includes(id) ? `<div class="small muted" style="padding:14px 8px">⚑ Reported. A moderator will review it.</div>` : B('item-report', '⚑ ' + t('Report'), 'danger');
+  const title = { post: (t('Post item') === 'Post item' ? 'Post' : t('Post item')), collab: t('Collab post'), comment: t('Comment') }[kind];
+  return Shell(admin ? t('Moderation') : title, title, btns, `<button class="btn ghost" data-action="close">${t('Cancel')}</button>`);
+}
+function EditModal() {
+  const { kind } = modal;
+  const label = kind === 'comment' ? t('Comment') : 'Caption';
+  return Shell(t('Edit'), label, `<textarea class="input" id="edit-text" data-m="text" maxlength="${kind === 'comment' ? 280 : 600}" style="min-height:120px">${esc(modal.text)}</textarea><div class="err" id="edit-err" hidden></div>`,
+    `<button class="btn ghost" data-action="close">${t('Cancel')}</button><button class="btn primary" data-action="item-save">${t('Save')}</button>`);
+}
 function ComposeModal() {
   const me = creator(S.me);
   const body = `<div class="stack">
@@ -1409,6 +1548,7 @@ function Main() {
   const tab = S.tab[S.role];
   const views = S.role === 'brand'
     ? { create: BrandCreate, discover: BrandDiscover, campaigns: BrandCampaigns, glow: GlowFeed, analytics: Analytics }
+    : S.role === 'admin' ? { moderation: Moderation, glow: GlowFeed }
     : { feed: CreatorFeed, glow: GlowFeed, status: CreatorStatus, profile: CreatorProfile, analytics: Analytics };
   return (views[tab] || Object.values(views)[0])();
 }
@@ -1525,7 +1665,35 @@ const actions = {
   'photo-remove': () => update((s) => { s.profiles[S.me].photo = ''; }),
   'feed-filter': ({ v }) => update((s) => { s.feedFilter = v; }),
   'open-post': ({ id }) => { modal = { type: 'post', postId: id }; render(); },
-  'del-post': ({ id }) => { if (modal && modal.type === 'post') modal = null; update((s) => { s.posts = s.posts.filter((x) => x.id !== id); delete s.comments[id]; }); toast('Post deleted.'); },
+  home: () => { modal = null; update((s) => { s.tab[s.role] = tabsFor(s.role)[0].id; }); window.scrollTo(0, 0); },
+  'mod-filter': ({ v }) => update((s) => { s.modFilter = v; }),
+  menu: ({ kind, id, parent }) => { modal = { type: 'menu', kind, id, parent, back: modal }; render(); },
+  'item-edit': ({ kind, id, parent }) => { const o = findItem(kind, id, parent); modal = { type: 'edit', kind, id, parent, text: kind === 'comment' ? o.text : (o.caption || ''), back: modal && modal.back }; render(); },
+  'item-save': () => {
+    const { kind, id, parent } = modal, text = (modal.text || '').trim(), o = findItem(kind, id, parent);
+    if (kind === 'comment' && !text) { const e = $('#edit-err'); e.hidden = false; e.textContent = 'A comment cannot be empty. Delete it instead.'; return; }
+    if (kind === 'post' && !text && !o.img) { const e = $('#edit-err'); e.hidden = false; e.textContent = 'A post without a photo needs a caption.'; return; }
+    const back = modal.back; modal = back && back.type === 'post' ? back : null;
+    update(() => { if (kind === 'comment') o.text = text; else o.caption = text; o.edited = Date.now(); o.editedBy = isAdmin() && !owns(kind, o) ? 'admin' : 'owner'; });
+    toast(S.lang === 'ko' && S.role !== 'creator' ? '수정했습니다' : 'Saved.');
+  },
+  'item-hide': ({ kind, id, parent }) => {
+    const o = findItem(kind, id, parent), hide = !o.hidden;
+    if (modal && modal.type === 'menu') { const back = modal.back; modal = back && back.type === 'post' ? back : null; }
+    update(() => { o.hidden = hide; if (hide) o.reports = 0; });
+    toast(S.lang === 'ko' ? (hide ? '숨겼습니다. 작성자와 운영자만 볼 수 있습니다.' : '숨김을 해제했습니다.') : (hide ? 'Hidden. Only the author and moderators can see it.' : 'Visible again.'));
+  },
+  'item-dismiss': ({ kind, id, parent }) => { const o = findItem(kind, id, parent); if (modal && modal.type === 'menu') modal = null; update(() => { o.reports = 0; }); toast(S.lang === 'ko' ? '신고를 기각했습니다' : 'Report dismissed.'); },
+  'item-report': ({ kind, id, parent }) => { const o = findItem(kind, id, parent); modal = null; update((s) => { o.reports = (o.reports || 0) + 1; s.myReports.push(id); }); toast('Reported. A moderator will review it.'); },
+  'item-delete': ({ kind, id, parent }) => { modal = { type: 'menu', kind, id, parent, confirm: true }; render(); },
+  'item-delete-yes': ({ kind, id, parent }) => {
+    modal = null;
+    update((s) => {
+      if (kind === 'post') { s.posts = s.posts.filter((x) => x.id !== id); delete s.comments[id]; }
+      else if (kind === 'comment') s.comments[parent] = (s.comments[parent] || []).filter((x) => x.id !== id);
+    });
+    toast(S.lang === 'ko' && S.role !== 'creator' ? '삭제했습니다' : 'Deleted.');
+  },
   compose: () => { modal = { type: 'compose', img: '', caption: '' }; render(); },
   'compose-clear': () => { modal.img = ''; render(); },
   'publish-post': () => {
@@ -1624,8 +1792,8 @@ document.addEventListener('submit', (e) => {
     e.preventDefault();
     const id = e.target.dataset.collab, text = e.target.querySelector('input').value.trim();
     if (!text) return;
-    const brand = S.role === 'brand';
-    update((s) => { (s.comments[id] = s.comments[id] || []).push({ id: uid('m'), by: brand ? 'brand' : S.me, name: brand ? ME_BRAND : creator(S.me).name, text, ts: Date.now() }); });
+    const by = S.role === 'brand' ? 'brand' : S.role === 'admin' ? 'admin' : S.me;
+    update((s) => { (s.comments[id] = s.comments[id] || []).push({ id: uid('m'), by, name: asName(), text, ts: Date.now() }); });
     return;
   }
   if (e.target.id !== 'create-form') return;

@@ -1,0 +1,1075 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FAF7F4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>LinkGlow</title>
+<style>
+  :root {
+    --bg: #FAF7F4;
+    --surface: #FFFFFF;
+    --sunk: #F3EEE9;
+    --ink: #1F1B18;
+    --ink-2: #4A433E;
+    --muted: #8C837C;
+    --line: #E9E2DB;
+    --blush: #F6E1DA;
+    --blush-ink: #9B4F43;
+    --rose: #D98A7C;
+    --sage: #E3EBDF;
+    --sage-ink: #4E6B47;
+    --sky: #E1E8F0;
+    --sky-ink: #3F5A78;
+    --butter: #F6EED6;
+    --butter-ink: #806624;
+    --danger: #B4473A;
+    --r-sm: 10px;
+    --r: 16px;
+    --r-lg: 22px;
+    --shadow: 0 1px 2px rgba(31,27,24,.04), 0 6px 24px rgba(31,27,24,.05);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: env(safe-area-inset-top, 0px);
+    font-family: "Inter", "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  body { font-size: 15px; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a { color: inherit; }
+
+  /* Layout */
+  .shell { max-width: 1180px; margin: 0 auto; padding: 0 16px 32px; }
+  .foot { text-align: center; padding: 0 16px 40px; color: var(--muted); font-size: 12px; }
+  header.top {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(250,247,244,.88); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px);
+    border-bottom: 1px solid var(--line); padding-top: var(--safe-t);
+  }
+  .top-inner { max-width: 1180px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: -.02em; font-size: 19px; }
+  .logo-dot { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 0 18%, var(--blush) 40%, var(--rose) 100%); box-shadow: 0 0 0 4px rgba(246,225,218,.6); }
+  .logo small { font-weight: 500; color: var(--muted); font-size: 12px; letter-spacing: 0; }
+  .spacer { flex: 1; }
+
+  .seg { display: inline-flex; background: var(--sunk); border-radius: 999px; padding: 3px; gap: 2px; }
+  .seg button { border: 0; background: transparent; padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .seg.sm button { padding: 5px 10px; font-size: 12px; }
+
+  nav.tabs { display: flex; gap: 4px; margin: 20px 0 8px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+  nav.tabs::-webkit-scrollbar { display: none; }
+  nav.tabs button { border: 0; background: none; padding: 10px 14px 12px; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; display: flex; gap: 6px; align-items: center; }
+  nav.tabs button.on { color: var(--ink); border-color: var(--ink); }
+  .badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--rose); color: #fff; font-size: 11px; line-height: 18px; text-align: center; font-weight: 700; }
+
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 22px 0 18px; flex-wrap: wrap; }
+  h1 { font-size: 28px; line-height: 1.15; letter-spacing: -.03em; margin: 0; font-weight: 700; }
+  h2 { font-size: 18px; letter-spacing: -.01em; margin: 0 0 4px; }
+  h3 { font-size: 15px; margin: 0; }
+  .sub { color: var(--muted); margin: 6px 0 0; font-size: 14px; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+  .pad { padding: 20px; }
+  .grid { display: grid; gap: 14px; }
+  .grid.cards { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .grid.two { grid-template-columns: 1.4fr 1fr; align-items: start; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .between { justify-content: space-between; }
+  .stack > * + * { margin-top: 12px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  .xs { font-size: 12px; }
+  .strong { font-weight: 650; }
+  .num { font-variant-numeric: tabular-nums; }
+  hr.soft { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
+
+  /* Buttons */
+  .btn { border: 1px solid transparent; border-radius: 999px; padding: 10px 18px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: transform .08s ease, background .15s ease, opacity .15s; }
+  .btn:active { transform: scale(.98); }
+  .btn.primary { background: var(--ink); color: #fff; }
+  .btn.primary:hover { background: #3a332e; }
+  .btn.blush { background: var(--blush); color: var(--blush-ink); }
+  .btn.blush:hover { background: #F1D3C9; }
+  .btn.ghost { background: var(--surface); border-color: var(--line); color: var(--ink); }
+  .btn.ghost:hover { background: var(--sunk); }
+  .btn.sm { padding: 7px 13px; font-size: 13px; }
+  .btn.block { width: 100%; }
+  .btn[disabled] { opacity: .45; pointer-events: none; }
+  .link { background: none; border: 0; padding: 0; color: var(--blush-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+  /* Chips & tags */
+  .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--sunk); color: var(--ink-2); white-space: nowrap; }
+  .tag.blush { background: var(--blush); color: var(--blush-ink); }
+  .tag.sage { background: var(--sage); color: var(--sage-ink); }
+  .tag.sky { background: var(--sky); color: var(--sky-ink); }
+  .tag.butter { background: var(--butter); color: var(--butter-ink); }
+  .chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 7px 13px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* Forms */
+  label.f { display: block; }
+  label.f > span { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--ink-2); }
+  .input, select.input, textarea.input { width: 100%; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r-sm); padding: 11px 13px; outline: none; transition: border-color .15s, box-shadow .15s; font-size: 15px; }
+  .input:focus { border-color: var(--rose); box-shadow: 0 0 0 3px rgba(217,138,124,.15); }
+  textarea.input { min-height: 88px; resize: vertical; }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .opt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .opt { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 12px; background: var(--surface); text-align: left; }
+  .opt.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); background: #FFFDFB; }
+  .opt b { display: block; font-size: 14px; }
+  .opt small { color: var(--muted); font-size: 12px; }
+  .err { color: var(--danger); font-size: 13px; margin-top: 6px; }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); }
+  .check input { margin-top: 3px; accent-color: var(--ink); width: 16px; height: 16px; flex: none; }
+
+  /* Filters bar */
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); margin-bottom: 16px; }
+  .filters .input { width: auto; padding: 8px 12px; font-size: 14px; }
+  .filters .search { flex: 1 1 200px; }
+
+  /* Creator card */
+  .avatar { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: var(--ink-2); flex: none; font-size: 15px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 14px 0; }
+  .stat { background: var(--sunk); border-radius: var(--r-sm); padding: 8px 10px; }
+  .stat b { display: block; font-size: 16px; letter-spacing: -.01em; }
+  .stat span { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+
+  /* Campaign card */
+  .product-art { height: 120px; border-radius: var(--r-sm); position: relative; overflow: hidden; display: grid; place-items: center; margin-bottom: 14px; }
+  .bottle { width: 34px; height: 74px; border-radius: 10px 10px 8px 8px; background: rgba(255,255,255,.85); position: relative; box-shadow: 0 8px 18px rgba(0,0,0,.06); }
+  .bottle::before { content: ""; position: absolute; top: -14px; left: 9px; width: 16px; height: 16px; border-radius: 4px 4px 0 0; background: rgba(31,27,24,.75); }
+  .bottle.tube { width: 40px; height: 82px; border-radius: 6px 6px 18px 18px; }
+  .bottle.tube::before { top: auto; bottom: -10px; left: 12px; width: 16px; height: 12px; border-radius: 0 0 4px 4px; }
+  .bottle.device { width: 26px; height: 92px; border-radius: 14px; background: rgba(255,255,255,.92); }
+  .bottle.device::before { top: 10px; left: 7px; width: 12px; height: 12px; border-radius: 50%; background: var(--rose); box-shadow: 0 0 12px 3px rgba(217,138,124,.6); }
+  .comp { font-size: 13px; font-weight: 650; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+
+  /* Pipeline */
+  .stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 16px 0 6px; }
+  .step { position: relative; text-align: center; font-size: 12px; color: var(--muted); padding-top: 26px; font-weight: 600; }
+  .step::before { content: ""; position: absolute; top: 9px; left: 0; right: 0; height: 2px; background: var(--line); }
+  .step:first-child::before { left: 50%; }
+  .step:last-child::before { right: 50%; }
+  .step i { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); width: 16px; height: 16px; border-radius: 50%; background: var(--surface); border: 2px solid var(--line); z-index: 1; }
+  .step.done { color: var(--ink-2); }
+  .step.done::before { background: var(--ink); }
+  .step.done i { background: var(--ink); border-color: var(--ink); }
+  .step.now { color: var(--ink); }
+  .step.now i { border-color: var(--rose); background: var(--blush); box-shadow: 0 0 0 4px rgba(246,225,218,.8); }
+  .step.now::before { background: linear-gradient(90deg, var(--ink) 50%, var(--line) 50%); }
+  .step:first-child.now::before { background: var(--line); }
+  .callout { border-radius: var(--r-sm); padding: 12px 14px; font-size: 14px; }
+  .callout.blush { background: var(--blush); color: var(--blush-ink); }
+  .callout.sage { background: var(--sage); color: var(--sage-ink); }
+  .callout.sky { background: var(--sky); color: var(--sky-ink); }
+  .callout.butter { background: var(--butter); color: var(--butter-ink); }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+
+  /* Applicant rows */
+  .applicant { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .applicant:first-child { border-top: 0; }
+  .applicant .grow { flex: 1 1 160px; min-width: 0; }
+
+  /* Analytics */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+  .kpi { padding: 16px 18px; }
+  .kpi span { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .kpi b { display: block; font-size: 26px; letter-spacing: -.03em; margin-top: 2px; }
+  .kpi em { font-style: normal; font-size: 12px; color: var(--sage-ink); font-weight: 600; }
+  .bars { display: grid; gap: 10px; }
+  .bar-row { display: grid; grid-template-columns: 130px 1fr 64px; align-items: center; gap: 10px; font-size: 13px; }
+  .bar-track { height: 10px; background: var(--sunk); border-radius: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--rose); border-radius: 6px; }
+  .bar-fill.ink { background: var(--ink-2); }
+  .table-wrap { overflow-x: auto; }
+  table.t { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 620px; }
+  table.t th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.t td { padding: 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.t tr:last-child td { border-bottom: 0; }
+  table.t td.r, table.t th.r { text-align: right; }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 44px 20px; color: var(--muted); }
+  .empty .ring { width: 56px; height: 56px; border-radius: 50%; background: var(--blush); margin: 0 auto 12px; }
+
+  /* Modal */
+  .scrim { position: fixed; inset: 0; background: rgba(31,27,24,.36); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; animation: fade .18s ease; }
+  .modal { background: var(--surface); width: 100%; max-width: 640px; max-height: calc(100vh - 32px); border-radius: var(--r-lg); display: flex; flex-direction: column; overflow: hidden; animation: rise .22s ease; }
+  .modal-head { padding: 18px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; gap: 12px; }
+  .modal-body { padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .modal-foot { padding: 14px 20px calc(14px + var(--safe-b)); border-top: 1px solid var(--line); display: flex; gap: 8px; justify-content: flex-end; background: var(--bg); }
+  .x { border: 0; background: var(--sunk); width: 32px; height: 32px; border-radius: 50%; font-size: 18px; line-height: 1; flex: none; }
+  .contract { background: #FFFDFB; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 18px; font-size: 13.5px; line-height: 1.6; }
+  .contract h4 { margin: 16px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--blush-ink); }
+  .contract h4:first-child { margin-top: 0; }
+  .contract ol, .contract ul { margin: 0; padding-left: 18px; }
+  .contract li + li { margin-top: 4px; }
+  .ftc-live { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; margin-top: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+  .dot.ok { background: var(--sage-ink); }
+
+  /* Toast */
+  .toast { position: fixed; left: 50%; bottom: calc(92px + var(--safe-b)); transform: translateX(-50%); background: var(--ink); color: #fff; padding: 11px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; z-index: 60; box-shadow: 0 10px 30px rgba(0,0,0,.18); animation: rise .2s ease; max-width: calc(100vw - 32px); text-align: center; }
+
+  /* Mobile bottom nav */
+  .bottom-nav { display: none; }
+
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  @media (min-width: 761px) { .toast { bottom: 28px; } }
+
+  @media (max-width: 960px) {
+    .grid.two { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 760px) {
+    h1 { font-size: 24px; }
+    .logo small { display: none; }
+    .top-inner { padding: 10px 16px; gap: 8px; }
+    nav.tabs { display: none; }
+    .bottom-nav {
+      display: grid; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+      background: rgba(255,255,255,.94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--line); padding: 6px 6px calc(6px + var(--safe-b));
+    }
+    .bottom-nav button { border: 0; background: none; padding: 6px 2px; font-size: 11px; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 3px; position: relative; }
+    .bottom-nav button svg { width: 22px; height: 22px; }
+    .bottom-nav button.on { color: var(--ink); }
+    .bottom-nav .badge { position: absolute; top: 0; left: calc(50% + 6px); }
+    .field-grid { grid-template-columns: 1fr; }
+    .opt-grid { grid-template-columns: 1fr; }
+    .filters .input { flex: 1 1 calc(50% - 8px); }
+    .bar-row { grid-template-columns: 96px 1fr 52px; }
+    .scrim { align-items: flex-end; padding: 0; }
+    .modal { border-radius: var(--r-lg) var(--r-lg) 0 0; max-height: 92vh; }
+    .kpi b { font-size: 22px; }
+    .foot { padding-bottom: calc(96px + var(--safe-b)); }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   LinkGlow — K-Beauty brands × US micro-creators
+   Single-file prototype. No dependencies. State persists in localStorage.
+   ========================================================= */
+
+const STORE_KEY = 'linkglow.v1';
+
+/* ---------- i18n (Brand view supports KO / EN) ---------- */
+const KO = {
+  'Create Campaign': '캠페인 등록',
+  'Creator Discovery': '크리에이터 탐색',
+  'My Campaigns': '내 캠페인',
+  'Performance': '성과 분석',
+  'Launch a K-Beauty campaign': 'K-뷰티 캠페인 등록',
+  'Brief US creators in minutes. No agency retainer.': '에이전시 없이, 몇 분 만에 미국 크리에이터에게 브리프를 보내세요.',
+  'Product': '제품',
+  'Product name': '제품명',
+  'Brand name': '브랜드명',
+  'K-beauty category': 'K-뷰티 카테고리',
+  'Skincare': '스킨케어', 'Device': '디바이스', 'Sunscreen': '선케어',
+  'Target US audience skin type': '타깃 미국 소비자 피부 타입',
+  'Skin concerns addressed': '해결하는 피부 고민',
+  'Compensation': '보상 방식',
+  'Free Product Seeding': '무료 제품 시딩',
+  'Fixed Pay': '고정 원고료',
+  'Affiliate %': '어필리에이트 %',
+  'Product only. Best for nano/micro creators.': '제품만 제공. 나노·마이크로에 적합.',
+  'Flat fee per deliverable.': '콘텐츠당 정액 지급.',
+  'Commission on tracked sales.': '추적 매출 기반 커미션.',
+  'Fee per creator (USD)': '크리에이터당 원고료 (USD)',
+  'Commission rate (%)': '커미션 비율 (%)',
+  'Retail price (USD)': '미국 판매가 (USD)',
+  'Creator slots': '모집 인원',
+  'Shipping': '배송 정보',
+  'Ship from Korea (EMS / DHL)': '한국 발송 (EMS / DHL)',
+  'US 3PL warehouse': '미국 3PL 창고',
+  'Ships from': '출고지',
+  'Est. delivery (days)': '예상 배송일 (일)',
+  'Customs / notes': '통관 / 메모',
+  'Creator brief': '크리에이터 브리프',
+  'Application deadline': '모집 마감일',
+  'Publish campaign': '캠페인 게시',
+  'Live preview': '미리보기',
+  'This is how US creators will see your card.': '미국 크리에이터에게 보이는 카드입니다.',
+  'Search name, niche, city': '이름, 니치, 도시 검색',
+  'All platforms': '전체 플랫폼',
+  'All niches': '전체 니치',
+  'All skin tones': '전체 피부 톤',
+  'Any followers': '팔로워 전체',
+  'Min. engagement': '최소 참여율',
+  'Send Offer': '제안 보내기',
+  'Offer sent': '제안 완료',
+  'Followers': '팔로워',
+  'Engagement': '참여율',
+  'Avg. fee': '평균 단가',
+  'creators match': '명 일치',
+  'Applicants & pipeline': '지원자 · 진행 현황',
+  'Approve & ship sample': '승인 · 샘플 발송',
+  'Decline': '거절',
+  'Awaiting creator': '크리에이터 응답 대기',
+  'No applicants yet.': '아직 지원자가 없습니다.',
+  'View contract': '계약서 보기',
+  'Clicks': '클릭', 'Promo code uses': '프로모 코드 사용', 'Conversion rate': '전환율', 'Tracked revenue': '추적 매출',
+  'Clicks by creator': '크리에이터별 클릭',
+  'Creator performance': '크리에이터 성과',
+  'Creator': '크리에이터', 'Campaign': '캠페인', 'Code': '코드', 'Orders': '주문', 'Revenue': '매출', 'CVR': '전환율',
+  'Last 14 days': '최근 14일',
+  'Reset demo': '데모 초기화',
+  'open': '모집중',
+  'applicants': '명 지원',
+  'Choose a campaign': '캠페인 선택',
+  'Required': '필수 항목입니다',
+  'Campaign published. Live on the US creator feed.': '캠페인이 게시되었습니다. 미국 크리에이터 피드에 노출됩니다.',
+  'Daily clicks': '일별 클릭',
+  'Completed collaborations only. Attribution: 7-day click + promo code.': '완료된 협업 기준. 어트리뷰션: 7일 클릭 + 프로모 코드.',
+  'Applied': '지원', 'Sample Shipped': '샘플 발송', 'Content Upload Needed': '콘텐츠 업로드 대기', 'Completed': '완료',
+  'Offer pending': '제안 대기'
+};
+
+/* ---------- Seed data ---------- */
+const CREATORS = [
+  { id: 'cr1', name: 'Maya Chen', handle: '@mayaglowsup', platform: 'TikTok', followers: 48200, er: 7.2, niche: 'Acne & Texture', tone: 'Light-Medium', skin: 'Combination', city: 'Los Angeles, CA', fee: 350, hue: '#F6E1DA' },
+  { id: 'cr2', name: 'Jasmine Brooks', handle: '@jasmineskinlab', platform: 'Reels', followers: 82400, er: 5.1, niche: 'Hyperpigmentation', tone: 'Deep', skin: 'Oily', city: 'Atlanta, GA', fee: 600, hue: '#E3EBDF' },
+  { id: 'cr3', name: 'Sofia Ramirez', handle: '@sofiaderm.diaries', platform: 'TikTok', followers: 23100, er: 9.4, niche: 'Sensitive Skin', tone: 'Medium', skin: 'Dry', city: 'Miami, FL', fee: 220, hue: '#E1E8F0' },
+  { id: 'cr4', name: 'Ava Thompson', handle: '@avasunscreenclub', platform: 'Reels', followers: 61000, er: 4.3, niche: 'SPF & Sun Care', tone: 'Fair', skin: 'Normal', city: 'Seattle, WA', fee: 450, hue: '#F6EED6' },
+  { id: 'cr5', name: 'Priya Patel', handle: '@priyaglowlab', platform: 'TikTok', followers: 95300, er: 6.0, niche: 'Beauty Devices', tone: 'Medium-Tan', skin: 'Combination', city: 'Jersey City, NJ', fee: 800, hue: '#EFE4F2' },
+  { id: 'cr6', name: 'Kayla Nguyen', handle: '@kaylakskin', platform: 'TikTok', followers: 34500, er: 8.1, niche: 'K-Beauty Routines', tone: 'Light', skin: 'Oily', city: 'Houston, TX', fee: 300, hue: '#F6E1DA' },
+  { id: 'cr7', name: 'Imani Johnson', handle: '@imaniglows', platform: 'Reels', followers: 15800, er: 10.2, niche: 'Anti-aging 30+', tone: 'Deep', skin: 'Dry', city: 'Chicago, IL', fee: 180, hue: '#E3EBDF' },
+  { id: 'cr8', name: 'Emily Carter', handle: '@emsminimalskin', platform: 'TikTok', followers: 71200, er: 3.8, niche: 'Minimal Routines', tone: 'Fair', skin: 'Sensitive', city: 'Denver, CO', fee: 520, hue: '#E1E8F0' },
+  { id: 'cr9', name: 'Lauren Kim', handle: '@laurenlayers', platform: 'Reels', followers: 27600, er: 7.7, niche: 'K-Beauty Routines', tone: 'Light', skin: 'Combination', city: 'New York, NY', fee: 280, hue: '#F6EED6' }
+];
+const ME_CREATOR = 'cr1';           // Creator view is signed in as Maya
+const ME_BRAND = 'Dewlab Seoul';    // Brand view is signed in as Dewlab Seoul
+
+const SKIN_TYPES = ['Dry', 'Oily', 'Combination', 'Sensitive', 'Acne-prone', 'Normal'];
+const CONCERNS = ['Acne', 'Dryness', 'Sensitivity', 'Oiliness', 'Hyperpigmentation', 'Aging', 'Sun Protection'];
+const STAGES = ['Applied', 'Sample Shipped', 'Content Upload Needed', 'Completed'];
+
+function seed() {
+  return {
+    role: 'brand',
+    lang: 'en',
+    tab: { brand: 'create', creator: 'feed' },
+    campaigns: [
+      { id: 'c1', brand: 'Dewlab Seoul', product: 'Rice Ferment Barrier Toner', category: 'Skincare', skin: ['Dry', 'Sensitive'], concerns: ['Dryness', 'Sensitivity'], comp: 'affiliate', amount: 15, price: 28, slots: 20, ship: 'kr', shipFrom: 'Seongsu-dong, Seoul', days: 9, notes: 'Under $800 de minimis. Cosmetic, non-drug.', brief: 'Show a 7-day barrier reset. Morning + night routine, texture shot, honest day-7 verdict.', deadline: '2026-11-08', created: 5 },
+      { id: 'c2', brand: 'Haneul Lab', product: 'Mugwort Calming Sun Fluid SPF50+', category: 'Sunscreen', skin: ['Oily', 'Combination', 'Acne-prone'], concerns: ['Sun Protection', 'Oiliness'], comp: 'fixed', amount: 300, price: 24, slots: 8, ship: 'us', shipFrom: 'Haneul US 3PL, Carson CA', days: 3, notes: 'Ships from US stock. No customs delay.', brief: 'No white cast test on camera. Reapply over makeup. Show finish at hour 6.', deadline: '2026-10-30', created: 9 },
+      { id: 'c3', brand: 'Glowtech Korea', product: 'LED Microcurrent Facial Wand', category: 'Device', skin: ['Normal', 'Combination', 'Dry'], concerns: ['Aging'], comp: 'affiliate', amount: 20, price: 189, slots: 6, ship: 'kr', shipFrom: 'Pangyo, Gyeonggi', days: 10, notes: 'FCC-certified. Do not make medical claims.', brief: '14-day routine diary. Before/after under same lighting. Explain the 3 modes.', deadline: '2026-11-20', created: 3 },
+      { id: 'c4', brand: 'Seoul Botanics', product: 'Centella Pore Clarifying Serum', category: 'Skincare', skin: ['Acne-prone', 'Oily'], concerns: ['Acne', 'Oiliness'], comp: 'seeding', amount: 0, price: 26, slots: 40, ship: 'kr', shipFrom: 'Jeju-si, Jeju', days: 8, notes: 'Full-size + mini toner.', brief: 'Honest first impressions. Close-up of texture and absorption.', deadline: '2026-11-02', created: 12 },
+      { id: 'c5', brand: 'Dewlab Seoul', product: 'Ceramide Sleeping Mask', category: 'Skincare', skin: ['Dry', 'Normal'], concerns: ['Dryness', 'Aging'], comp: 'fixed', amount: 250, price: 34, slots: 10, ship: 'us', shipFrom: 'ShipBob, Chicago IL', days: 4, notes: 'US stock available.', brief: 'Night routine GRWM. Show the morning-after skin in natural light.', deadline: '2026-11-15', created: 7 },
+      { id: 'c6', brand: 'Moonbeam Derm', product: 'PDRN Glass Skin Ampoule', category: 'Skincare', skin: ['Dry', 'Normal', 'Combination'], concerns: ['Aging', 'Hyperpigmentation'], comp: 'affiliate', amount: 18, price: 42, slots: 15, ship: 'kr', shipFrom: 'Gangnam-gu, Seoul', days: 9, notes: 'Clinic-born brand. Cosmetic claims only.', brief: 'Explain PDRN simply. "Glass skin" close-up after 2 weeks.', deadline: '2026-11-25', created: 1 }
+    ],
+    // stage: -1 = offer pending creator response, 0..3 = STAGES index
+    collabs: [
+      { id: 'k1', campaignId: 'c2', creatorId: 'cr1', stage: 1, tracking: 'LX204918337US', carrier: 'USPS', via: 'apply' },
+      { id: 'k2', campaignId: 'c3', creatorId: 'cr1', stage: 2, tracking: 'EG882104513KR', carrier: 'EMS', via: 'apply' },
+      { id: 'k3', campaignId: 'c4', creatorId: 'cr1', stage: 3, tracking: 'EG771230984KR', carrier: 'EMS', via: 'apply', post: 'https://www.tiktok.com/@mayaglowsup/video/7421' },
+      { id: 'k4', campaignId: 'c5', creatorId: 'cr1', stage: -1, via: 'offer' },
+      { id: 'k5', campaignId: 'c1', creatorId: 'cr2', stage: 0, via: 'apply' },
+      { id: 'k6', campaignId: 'c1', creatorId: 'cr3', stage: 1, tracking: 'EG902215660KR', carrier: 'EMS', via: 'apply' },
+      { id: 'k7', campaignId: 'c1', creatorId: 'cr6', stage: 3, tracking: 'EG650021178KR', carrier: 'EMS', via: 'offer', post: 'https://www.tiktok.com/@kaylakskin/video/7398' },
+      { id: 'k8', campaignId: 'c1', creatorId: 'cr7', stage: 3, tracking: 'EG650021179KR', carrier: 'EMS', via: 'apply', post: 'https://www.instagram.com/reel/C9x' },
+      { id: 'k9', campaignId: 'c5', creatorId: 'cr9', stage: 3, tracking: '9400111899223', carrier: 'USPS', via: 'offer', post: 'https://www.instagram.com/reel/DA2' },
+      { id: 'k10', campaignId: 'c5', creatorId: 'cr4', stage: 0, via: 'apply' },
+      { id: 'k11', campaignId: 'c4', creatorId: 'cr6', stage: 3, tracking: 'EG771230990KR', carrier: 'EMS', via: 'apply', post: 'https://www.tiktok.com/@kaylakskin/video/7402' }
+    ],
+    draft: blankDraft(),
+    draftErrors: {},
+    df: { q: '', platform: '', niche: '', tone: '', followers: '', er: '' },
+    cf: { q: '', concern: '', comp: '', category: '' },
+    offerCampaign: 'c1',
+    perfCampaign: ''
+  };
+}
+
+function blankDraft() {
+  return { product: '', brand: ME_BRAND, category: 'Skincare', skin: [], concerns: [], comp: 'seeding', amount: '', price: '', slots: '10', ship: 'kr', shipFrom: 'Seoul, Korea', days: '9', notes: '', brief: '', deadline: '' };
+}
+
+/* ---------- State ---------- */
+let S = load() || seed();
+let modal = null;   // { type: 'contract' | 'upload' | 'tracking', ... } — transient, not persisted
+let toastMsg = '';
+let toastTimer = null;
+
+function load() {
+  try { const raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) { /* storage unavailable: run in-memory */ }
+}
+function update(fn) { fn(S); save(); render(); }
+function toast(msg) {
+  toastMsg = msg; render();
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toastMsg = ''; render(); }, 2600);
+}
+
+/* ---------- Helpers ---------- */
+const $ = (sel, root = document) => root.querySelector(sel);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const t = (s) => (S.role === 'brand' && S.lang === 'ko' && KO[s]) ? KO[s] : s;
+const fmtK = (n) => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K' : String(n);
+const fmt$ = (n) => '$' + Math.round(n).toLocaleString('en-US');
+const pct = (n) => (n * 100).toFixed(1) + '%';
+const initials = (name) => name.split(' ').map((w) => w[0]).join('').slice(0, 2);
+const creator = (id) => CREATORS.find((c) => c.id === id);
+const campaign = (id) => S.campaigns.find((c) => c.id === id);
+const uid = (p) => p + Math.random().toString(36).slice(2, 8);
+const promo = (cr) => cr.handle.replace(/[@._]/g, '').slice(0, 8).toUpperCase() + '15';
+
+function compLabel(c, short) {
+  if (c.comp === 'seeding') return short ? 'Free product' : `Free product (${fmt$(c.price)} value)`;
+  if (c.comp === 'fixed') return `${fmt$(c.amount)} + product`;
+  return `${c.amount}% affiliate + product`;
+}
+function compTag(c) {
+  const map = { seeding: ['sage', 'Seeding'], fixed: ['sky', 'Fixed Pay'], affiliate: ['butter', 'Affiliate'] };
+  const [cls, label] = map[c.comp];
+  return `<span class="tag ${cls}">${t(label === 'Seeding' ? 'Free Product Seeding' : label === 'Affiliate' ? 'Affiliate %' : label)}</span>`;
+}
+const CAT_HUE = { Skincare: 'linear-gradient(135deg,#F6E1DA,#F3EEE9)', Sunscreen: 'linear-gradient(135deg,#F6EED6,#FAF7F4)', Device: 'linear-gradient(135deg,#E1E8F0,#EFE4F2)' };
+function productArt(c) {
+  const shape = c.category === 'Device' ? 'device' : c.category === 'Sunscreen' ? 'tube' : '';
+  return `<div class="product-art" style="background:${CAT_HUE[c.category] || CAT_HUE.Skincare}"><div class="bottle ${shape}"></div>
+    <span class="tag" style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,.8)">${esc(t(c.category))}</span></div>`;
+}
+function daysLeft(d) {
+  if (!d) return '';
+  const diff = Math.ceil((new Date(d + 'T23:59:59') - new Date()) / 86400000);
+  return diff < 0 ? 'Closed' : diff === 0 ? 'Closes today' : `${diff}d left`;
+}
+
+// Deterministic pseudo-random per string, so mock analytics stay stable between renders.
+function rng(seedStr) {
+  let h = 2166136261;
+  for (const ch of seedStr) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 10000) / 10000; };
+}
+function metrics(k) {
+  const cr = creator(k.creatorId), c = campaign(k.campaignId);
+  const r = rng(k.id + k.creatorId);
+  const reach = cr.followers * (cr.er / 100);
+  const clicks = Math.round(reach * (0.18 + r() * 0.22));
+  const codeUses = Math.round(clicks * (0.035 + r() * 0.04));
+  const orders = codeUses + Math.round(clicks * (0.008 + r() * 0.01));
+  const revenue = orders * c.price;
+  const daily = Array.from({ length: 14 }, (_, i) => {
+    const decay = Math.exp(-i / 5);
+    return Math.round((clicks / 4.2) * decay * (0.7 + r() * 0.6));
+  });
+  const earning = (c.comp === 'fixed' ? c.amount : 0) + (c.comp === 'affiliate' ? revenue * c.amount / 100 : 0);
+  return { clicks, codeUses, orders, revenue, cvr: clicks ? orders / clicks : 0, daily, earning, code: promo(cr) };
+}
+
+/* ---------- Icons ---------- */
+const ICON = {
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>',
+  box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>',
+  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  feed: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>',
+  flow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 12h3M14 12h3"/></svg>'
+};
+
+/* ---------- Tabs ---------- */
+function tabsFor(role) {
+  if (role === 'brand') {
+    const pending = S.collabs.filter((k) => k.stage === 0 && campaign(k.campaignId)?.brand === ME_BRAND).length;
+    return [
+      { id: 'create', label: t('Create Campaign'), short: S.lang === 'ko' ? '등록' : 'Create', icon: ICON.plus },
+      { id: 'discover', label: t('Creator Discovery'), short: S.lang === 'ko' ? '탐색' : 'Discover', icon: ICON.search },
+      { id: 'campaigns', label: t('My Campaigns'), short: S.lang === 'ko' ? '캠페인' : 'Campaigns', icon: ICON.box, badge: pending },
+      { id: 'analytics', label: t('Performance'), short: S.lang === 'ko' ? '성과' : 'Stats', icon: ICON.chart }
+    ];
+  }
+  const action = S.collabs.filter((k) => k.creatorId === ME_CREATOR && (k.stage === -1 || k.stage === 1 || k.stage === 2)).length;
+  return [
+    { id: 'feed', label: 'Campaign Feed', short: 'Feed', icon: ICON.feed },
+    { id: 'status', label: 'My Collaborations', short: 'Collabs', icon: ICON.flow, badge: action },
+    { id: 'analytics', label: 'Performance', short: 'Stats', icon: ICON.chart }
+  ];
+}
+
+/* ---------- Views ---------- */
+function Header() {
+  const brandLabel = S.lang === 'ko' ? '브랜드 (KR/EN)' : 'Brand (KR/EN)';
+  return `
+  <header class="top"><div class="top-inner">
+    <div class="logo"><span class="logo-dot"></span>LinkGlow <small>K-Beauty × US Creators</small></div>
+    <div class="spacer"></div>
+    ${S.role === 'brand' ? `<div class="seg sm" role="group" aria-label="Language">
+      <button class="${S.lang === 'ko' ? 'on' : ''}" data-action="lang" data-v="ko">KO</button>
+      <button class="${S.lang === 'en' ? 'on' : ''}" data-action="lang" data-v="en">EN</button></div>` : ''}
+    <div class="seg" role="tablist" aria-label="Switch view">
+      <button class="${S.role === 'brand' ? 'on' : ''}" data-action="role" data-v="brand">${brandLabel}</button>
+      <button class="${S.role === 'creator' ? 'on' : ''}" data-action="role" data-v="creator">Creator (EN)</button>
+    </div>
+  </div></header>`;
+}
+
+function Tabs() {
+  const tabs = tabsFor(S.role), cur = S.tab[S.role];
+  const badge = (n) => n ? `<span class="badge">${n}</span>` : '';
+  return `
+  <nav class="tabs">${tabs.map((x) => `<button class="${x.id === cur ? 'on' : ''}" data-action="tab" data-v="${x.id}">${x.label}${badge(x.badge)}</button>`).join('')}</nav>
+  <nav class="bottom-nav" style="grid-template-columns:repeat(${tabs.length},1fr)">
+    ${tabs.map((x) => `<button class="${x.id === cur ? 'on' : ''}" data-action="tab" data-v="${x.id}">${x.icon}${x.short}${badge(x.badge)}</button>`).join('')}
+  </nav>`;
+}
+
+/* ----- Brand: Create campaign ----- */
+function BrandCreate() {
+  const d = S.draft, e = S.draftErrors;
+  const err = (k) => e[k] ? `<div class="err">${t('Required')}</div>` : '';
+  const compOpts = [
+    ['seeding', 'Free Product Seeding', 'Product only. Best for nano/micro creators.'],
+    ['fixed', 'Fixed Pay', 'Flat fee per deliverable.'],
+    ['affiliate', 'Affiliate %', 'Commission on tracked sales.']
+  ];
+  const preview = { ...d, id: 'preview', product: d.product || (S.lang === 'ko' ? '제품명을 입력하세요' : 'Your product name'), amount: Number(d.amount) || 0, price: Number(d.price) || 0, slots: Number(d.slots) || 0, created: 0 };
+  return `
+  <div class="page-head"><div><h1>${t('Launch a K-Beauty campaign')}</h1><p class="sub">${t('Brief US creators in minutes. No agency retainer.')}</p></div></div>
+  <div class="grid two">
+    <form class="card pad stack" id="create-form" novalidate>
+      <p class="section-label">${t('Product')}</p>
+      <div class="field-grid">
+        <label class="f"><span>${t('Product name')} *</span><input class="input" id="d-product" data-bind="draft.product" value="${esc(d.product)}" placeholder="e.g. Heartleaf Pore Toner">${err('product')}</label>
+        <label class="f"><span>${t('Brand name')}</span><input class="input" id="d-brand" data-bind="draft.brand" value="${esc(d.brand)}"></label>
+      </div>
+      <div><label class="f"><span>${t('K-beauty category')}</span></label>
+        <div class="chips">${['Skincare', 'Device', 'Sunscreen'].map((c) => `<button type="button" class="chip ${d.category === c ? 'on' : ''}" data-action="draft-set" data-k="category" data-v="${c}">${t(c)}</button>`).join('')}</div></div>
+      <div><label class="f"><span>${t('Target US audience skin type')} *</span></label>
+        <div class="chips">${SKIN_TYPES.map((s) => `<button type="button" class="chip ${d.skin.includes(s) ? 'on' : ''}" data-action="draft-toggle" data-k="skin" data-v="${s}">${s}</button>`).join('')}</div>${err('skin')}</div>
+      <div><label class="f"><span>${t('Skin concerns addressed')}</span></label>
+        <div class="chips">${CONCERNS.map((s) => `<button type="button" class="chip ${d.concerns.includes(s) ? 'on' : ''}" data-action="draft-toggle" data-k="concerns" data-v="${s}">${s}</button>`).join('')}</div></div>
+
+      <hr class="soft"><p class="section-label">${t('Compensation')}</p>
+      <div class="opt-grid">${compOpts.map(([v, l, s]) => `<button type="button" class="opt ${d.comp === v ? 'on' : ''}" data-action="draft-set" data-k="comp" data-v="${v}"><b>${t(l)}</b><small>${t(s)}</small></button>`).join('')}</div>
+      <div class="field-grid">
+        ${d.comp !== 'seeding' ? `<label class="f"><span>${d.comp === 'fixed' ? t('Fee per creator (USD)') : t('Commission rate (%)')} *</span><input class="input" id="d-amount" type="number" inputmode="decimal" min="0" data-bind="draft.amount" value="${esc(d.amount)}" placeholder="${d.comp === 'fixed' ? '300' : '15'}">${err('amount')}</label>` : ''}
+        <label class="f"><span>${t('Retail price (USD)')} *</span><input class="input" id="d-price" type="number" inputmode="decimal" min="0" data-bind="draft.price" value="${esc(d.price)}" placeholder="28">${err('price')}</label>
+        <label class="f"><span>${t('Creator slots')}</span><input class="input" id="d-slots" type="number" inputmode="numeric" min="1" data-bind="draft.slots" value="${esc(d.slots)}"></label>
+        <label class="f"><span>${t('Application deadline')} *</span><input class="input" id="d-deadline" type="date" data-bind="draft.deadline" value="${esc(d.deadline)}">${err('deadline')}</label>
+      </div>
+
+      <hr class="soft"><p class="section-label">${t('Shipping')}</p>
+      <div class="chips">
+        <button type="button" class="chip ${d.ship === 'kr' ? 'on' : ''}" data-action="draft-set" data-k="ship" data-v="kr">${t('Ship from Korea (EMS / DHL)')}</button>
+        <button type="button" class="chip ${d.ship === 'us' ? 'on' : ''}" data-action="draft-set" data-k="ship" data-v="us">${t('US 3PL warehouse')}</button>
+      </div>
+      <div class="field-grid">
+        <label class="f"><span>${t('Ships from')}</span><input class="input" id="d-shipFrom" data-bind="draft.shipFrom" value="${esc(d.shipFrom)}"></label>
+        <label class="f"><span>${t('Est. delivery (days)')}</span><input class="input" id="d-days" type="number" inputmode="numeric" min="1" data-bind="draft.days" value="${esc(d.days)}"></label>
+      </div>
+      <label class="f"><span>${t('Customs / notes')}</span><input class="input" id="d-notes" data-bind="draft.notes" value="${esc(d.notes)}" placeholder="Under $800 de minimis · cosmetic, non-drug"></label>
+      <label class="f"><span>${t('Creator brief')}</span><textarea class="input" id="d-brief" data-bind="draft.brief" placeholder="Hook, key claims, must-show moments, do-nots.">${esc(d.brief)}</textarea></label>
+      ${d.ship === 'kr' ? `<div class="callout butter small">Korea → US parcels under the $800 de minimis clear faster. Declare as cosmetic. Avoid drug claims (acne treatment, SPF is OTC-regulated in the US).</div>` : ''}
+      <button class="btn primary block" type="submit">${t('Publish campaign')}</button>
+    </form>
+    <div class="stack" style="position:sticky;top:90px">
+      <p class="section-label" style="margin:0">${t('Live preview')}</p>
+      <p class="small muted" style="margin:4px 0 10px">${t('This is how US creators will see your card.')}</p>
+      ${CampaignCard(preview, true)}
+    </div>
+  </div>`;
+}
+
+/* ----- Brand: Discovery ----- */
+function filteredCreators() {
+  const f = S.df, q = f.q.trim().toLowerCase();
+  return CREATORS.filter((c) =>
+    (!q || [c.name, c.handle, c.niche, c.city].join(' ').toLowerCase().includes(q)) &&
+    (!f.platform || c.platform === f.platform) &&
+    (!f.niche || c.niche === f.niche) &&
+    (!f.tone || c.tone === f.tone) &&
+    (!f.er || c.er >= Number(f.er)) &&
+    (!f.followers || (f.followers === 'nano' ? c.followers < 30000 : f.followers === 'mid' ? c.followers >= 30000 && c.followers < 70000 : c.followers >= 70000))
+  );
+}
+function BrandDiscover() {
+  const f = S.df, list = filteredCreators();
+  const mine = S.campaigns.filter((c) => c.brand === ME_BRAND);
+  const uniq = (k) => [...new Set(CREATORS.map((c) => c[k]))].sort();
+  return `
+  <div class="page-head"><div><h1>${t('Creator Discovery')}</h1><p class="sub">${list.length} ${t('creators match')}</p></div>
+    <label class="f" style="min-width:220px"><span class="xs">${t('Choose a campaign')}</span>
+      <select class="input" id="offer-campaign" data-bind="offerCampaign">${mine.map((c) => `<option value="${c.id}" ${S.offerCampaign === c.id ? 'selected' : ''}>${esc(c.product)}</option>`).join('')}</select></label>
+  </div>
+  <div class="filters">
+    <input class="input search" id="df-q" data-filter="df.q" value="${esc(f.q)}" placeholder="${t('Search name, niche, city')}">
+    <select class="input" id="df-platform" data-filter="df.platform"><option value="">${t('All platforms')}</option>${['TikTok', 'Reels'].map((v) => `<option ${f.platform === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
+    <select class="input" id="df-niche" data-filter="df.niche"><option value="">${t('All niches')}</option>${uniq('niche').map((v) => `<option ${f.niche === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
+    <select class="input" id="df-tone" data-filter="df.tone"><option value="">${t('All skin tones')}</option>${uniq('tone').map((v) => `<option ${f.tone === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
+    <select class="input" id="df-followers" data-filter="df.followers"><option value="">${t('Any followers')}</option>
+      <option value="nano" ${f.followers === 'nano' ? 'selected' : ''}>10K–30K</option><option value="mid" ${f.followers === 'mid' ? 'selected' : ''}>30K–70K</option><option value="macro" ${f.followers === 'macro' ? 'selected' : ''}>70K–100K</option></select>
+    <select class="input" id="df-er" data-filter="df.er"><option value="">${t('Min. engagement')}</option>${[4, 6, 8].map((v) => `<option value="${v}" ${String(f.er) === String(v) ? 'selected' : ''}>≥ ${v}%</option>`).join('')}</select>
+  </div>
+  ${list.length ? `<div class="grid cards">${list.map(CreatorCard).join('')}</div>` : Empty('No creators match these filters.')}`;
+}
+function CreatorCard(c) {
+  const sent = S.collabs.some((k) => k.creatorId === c.id && k.campaignId === S.offerCampaign);
+  return `
+  <article class="card pad">
+    <div class="row" style="gap:12px;flex-wrap:nowrap">
+      <div class="avatar" style="background:${c.hue}">${initials(c.name)}</div>
+      <div style="min-width:0"><h3>${esc(c.name)}</h3><div class="small muted">${esc(c.handle)} · ${esc(c.city)}</div></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>${t('Followers')}</span><b class="num">${fmtK(c.followers)}</b></div>
+      <div class="stat"><span>${t('Engagement')}</span><b class="num">${c.er}%</b></div>
+      <div class="stat"><span>${t('Avg. fee')}</span><b class="num">${fmt$(c.fee)}</b></div>
+    </div>
+    <div class="chips" style="margin-bottom:14px">
+      <span class="tag ${c.platform === 'TikTok' ? 'blush' : 'sky'}">${c.platform}</span>
+      <span class="tag">${esc(c.niche)}</span><span class="tag sage">Tone · ${c.tone}</span><span class="tag">${c.skin} skin</span>
+    </div>
+    <button class="btn ${sent ? 'ghost' : 'primary'} block" data-action="offer" data-creator="${c.id}" ${sent ? 'disabled' : ''}>${sent ? '✓ ' + t('Offer sent') : t('Send Offer')}</button>
+  </article>`;
+}
+
+/* ----- Brand: My campaigns ----- */
+function BrandCampaigns() {
+  const mine = S.campaigns.filter((c) => c.brand === ME_BRAND).sort((a, b) => a.created - b.created);
+  return `
+  <div class="page-head"><div><h1>${t('My Campaigns')}</h1><p class="sub">${esc(ME_BRAND)} · ${mine.length} ${t('open')}</p></div>
+    <button class="btn blush" data-action="tab" data-v="create">+ ${t('Create Campaign')}</button></div>
+  <div class="stack">${mine.map((c) => {
+    const ks = S.collabs.filter((k) => k.campaignId === c.id);
+    return `
+    <section class="card pad">
+      <div class="row between" style="align-items:flex-start">
+        <div><div class="row" style="margin-bottom:6px">${compTag(c)}<span class="tag">${t(c.category)}</span><span class="tag">${daysLeft(c.deadline)}</span></div>
+          <h2>${esc(c.product)}</h2><div class="small muted">${compLabel(c)} · ${ks.length}/${c.slots} ${t('applicants')}</div></div>
+      </div>
+      <hr class="soft"><p class="section-label">${t('Applicants & pipeline')}</p>
+      ${ks.length ? ks.map((k) => ApplicantRow(k, c)).join('') : `<p class="small muted">${t('No applicants yet.')}</p>`}
+    </section>`;
+  }).join('')}</div>`;
+}
+function ApplicantRow(k, c) {
+  const cr = creator(k.creatorId);
+  let status, actions = '';
+  if (k.stage === -1) status = `<span class="tag butter">${t('Offer pending')}</span>`;
+  else status = `<span class="tag ${k.stage === 3 ? 'sage' : k.stage === 0 ? 'blush' : 'sky'}">${t(STAGES[k.stage])}</span>`;
+  if (k.stage === 0) actions = `<button class="btn primary sm" data-action="approve" data-id="${k.id}">${t('Approve & ship sample')}</button><button class="btn ghost sm" data-action="decline" data-id="${k.id}">${t('Decline')}</button>`;
+  if (k.stage >= 1 && k.tracking) actions = `<span class="mono muted">${k.carrier} ${k.tracking}</span>`;
+  if (k.stage === 3 && k.post) actions += ` <a class="link small" href="${esc(k.post)}" target="_blank" rel="noopener">View post ↗</a>`;
+  return `
+  <div class="applicant">
+    <div class="avatar" style="background:${cr.hue};width:38px;height:38px;font-size:13px">${initials(cr.name)}</div>
+    <div class="grow"><div class="strong">${esc(cr.name)} <span class="muted small">${esc(cr.handle)}</span></div>
+      <div class="xs muted">${cr.platform} · ${fmtK(cr.followers)} · ${cr.er}% ER · ${k.via === 'offer' ? 'Invited' : 'Applied'}</div></div>
+    ${status}
+    <div class="row">${actions}<button class="link small" data-action="contract-view" data-id="${k.id}">${t('View contract')}</button></div>
+  </div>`;
+}
+
+/* ----- Creator: Campaign feed ----- */
+function filteredCampaigns() {
+  const f = S.cf, q = f.q.trim().toLowerCase();
+  return S.campaigns.filter((c) =>
+    (!q || [c.product, c.brand, c.category].join(' ').toLowerCase().includes(q)) &&
+    (!f.concern || c.concerns.includes(f.concern)) &&
+    (!f.comp || c.comp === f.comp) &&
+    (!f.category || c.category === f.category)
+  ).sort((a, b) => a.created - b.created);
+}
+function CreatorFeed() {
+  const f = S.cf, list = filteredCampaigns(), me = creator(ME_CREATOR);
+  return `
+  <div class="page-head"><div><h1>Hi ${esc(me.name.split(' ')[0])} — fresh from Seoul.</h1><p class="sub">${list.length} open K-Beauty campaigns · matched to ${me.skin.toLowerCase()} skin</p></div></div>
+  <div class="filters">
+    <input class="input search" id="cf-q" data-filter="cf.q" value="${esc(f.q)}" placeholder="Search product or brand">
+    <select class="input" id="cf-concern" data-filter="cf.concern"><option value="">All skin concerns</option>${CONCERNS.map((v) => `<option ${f.concern === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
+    <select class="input" id="cf-comp" data-filter="cf.comp"><option value="">All compensation</option>
+      <option value="seeding" ${f.comp === 'seeding' ? 'selected' : ''}>Free product</option><option value="fixed" ${f.comp === 'fixed' ? 'selected' : ''}>Fixed pay</option><option value="affiliate" ${f.comp === 'affiliate' ? 'selected' : ''}>Affiliate %</option></select>
+    <select class="input" id="cf-category" data-filter="cf.category"><option value="">All categories</option>${['Skincare', 'Sunscreen', 'Device'].map((v) => `<option ${f.category === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
+  </div>
+  ${list.length ? `<div class="grid cards">${list.map((c) => CampaignCard(c)).join('')}</div>` : Empty('No campaigns match. Try another skin concern.')}`;
+}
+function CampaignCard(c, preview) {
+  const mine = S.collabs.find((k) => k.campaignId === c.id && k.creatorId === ME_CREATOR);
+  const taken = S.collabs.filter((k) => k.campaignId === c.id).length;
+  const match = c.skin.includes(creator(ME_CREATOR).skin);
+  let cta;
+  if (preview) cta = `<button class="btn primary block" type="button" disabled>Apply for Sample</button>`;
+  else if (!mine) cta = `<button class="btn primary block" data-action="apply" data-id="${c.id}">Apply for Sample</button>`;
+  else if (mine.stage === -1) cta = `<button class="btn blush block" data-action="accept-offer" data-id="${mine.id}">Brand invited you · Review offer</button>`;
+  else cta = `<button class="btn ghost block" data-action="tab" data-v="status">✓ ${STAGES[mine.stage]} · Track</button>`;
+  return `
+  <article class="card pad">
+    ${productArt(c)}
+    <div class="row between xs muted" style="margin-bottom:4px"><span class="strong" style="color:var(--ink-2)">${esc(c.brand)}</span><span>${daysLeft(c.deadline) || '—'}</span></div>
+    <h3 style="font-size:17px;letter-spacing:-.01em">${esc(c.product)}</h3>
+    <div class="comp" style="margin:6px 0 10px">${esc(compLabel(c))}</div>
+    <div class="chips" style="margin-bottom:12px">
+      ${!preview && match ? '<span class="tag blush">✦ Matches your skin</span>' : ''}
+      ${c.skin.map((s) => `<span class="tag">${esc(s)}</span>`).join('')}
+    </div>
+    ${c.brief ? `<p class="small" style="color:var(--ink-2);margin:0 0 12px">${esc(c.brief)}</p>` : ''}
+    <dl class="kv" style="margin:0 0 14px">
+      <dt>Ships</dt><dd>${c.ship === 'us' ? 'US warehouse' : 'From Korea'} · ~${esc(c.days)} days</dd>
+      <dt>Slots</dt><dd>${Math.max(c.slots - taken, 0)} of ${c.slots} left</dd>
+      <dt>Retail</dt><dd>${fmt$(c.price)}</dd>
+    </dl>
+    ${cta}
+  </article>`;
+}
+
+/* ----- Creator: Collaboration status ----- */
+function CreatorStatus() {
+  const ks = S.collabs.filter((k) => k.creatorId === ME_CREATOR);
+  const offers = ks.filter((k) => k.stage === -1);
+  const active = ks.filter((k) => k.stage >= 0).sort((a, b) => a.stage - b.stage);
+  return `
+  <div class="page-head"><div><h1>My Collaborations</h1><p class="sub">${active.filter((k) => k.stage < 3).length} in progress · ${active.filter((k) => k.stage === 3).length} completed</p></div></div>
+  ${offers.length ? `<p class="section-label">Brand invitations</p><div class="grid cards" style="margin-bottom:22px">${offers.map((k) => {
+    const c = campaign(k.campaignId);
+    return `<div class="card pad"><div class="row" style="margin-bottom:8px"><span class="tag butter">New offer</span>${compTag(c)}</div>
+      <h3>${esc(c.product)}</h3><div class="small muted" style="margin:4px 0 14px">${esc(c.brand)} · ${esc(compLabel(c))}</div>
+      <div class="row"><button class="btn primary sm" data-action="accept-offer" data-id="${k.id}">Review & accept</button><button class="btn ghost sm" data-action="decline" data-id="${k.id}">Pass</button></div></div>`;
+  }).join('')}</div>` : ''}
+  <p class="section-label">Pipeline</p>
+  ${active.length ? `<div class="stack">${active.map(CollabCard).join('')}</div>` : Empty('Apply to a campaign to start your first collab.')}`;
+}
+function CollabCard(k) {
+  const c = campaign(k.campaignId);
+  const steps = STAGES.map((s, i) => `<div class="step ${i < k.stage || k.stage === 3 ? 'done' : i === k.stage ? 'now' : ''}"><i></i>${s === 'Content Upload Needed' ? 'Content Upload' : s}</div>`).join('');
+  let body = '';
+  if (k.stage === 0) body = `<div class="callout sky">Application sent. ${esc(c.brand)} usually replies in 2–3 days.</div>
+    <div class="row" style="margin-top:10px"><button class="btn ghost sm" data-action="simulate-ship" data-id="${k.id}">Demo: brand approves & ships</button></div>`;
+  if (k.stage === 1) body = `<div class="callout blush"><div class="strong">Sample on the way</div>
+      <div class="row" style="margin-top:4px"><span class="mono">${k.carrier} · ${k.tracking}</span></div>
+      <div class="small" style="margin-top:2px">${c.ship === 'us' ? 'From US warehouse' : 'From ' + esc(c.shipFrom) + ' → customs → you'} · ETA ~${esc(c.days)} days</div></div>
+    <div class="row" style="margin-top:10px"><button class="btn primary sm" data-action="received" data-id="${k.id}">I received it</button></div>`;
+  if (k.stage === 2) body = `<div class="callout butter"><div class="strong">Content due · FTC check required</div>
+      <div class="small">Post with #ad or #sponsored up front, turn on the paid-partnership label, and say it out loud.</div></div>
+    <div class="row" style="margin-top:10px"><button class="btn primary sm" data-action="upload" data-id="${k.id}">Submit content</button></div>`;
+  if (k.stage === 3) {
+    const m = metrics(k);
+    body = `<div class="callout sage"><div class="strong">Completed · FTC compliant ✓</div>
+      <div class="small">Code <span class="mono">${m.code}</span> · ${m.clicks.toLocaleString()} clicks · ${m.orders} orders${m.earning ? ' · earned ' + fmt$(m.earning) : ''}</div></div>`;
+  }
+  return `
+  <section class="card pad">
+    <div class="row between" style="align-items:flex-start;flex-wrap:nowrap">
+      <div style="min-width:0"><div class="xs muted strong">${esc(c.brand)}</div><h3 style="font-size:16px">${esc(c.product)}</h3><div class="small muted">${esc(compLabel(c))}</div></div>
+      <button class="link small" data-action="contract-view" data-id="${k.id}" style="flex:none">Contract</button>
+    </div>
+    <div class="stepper">${steps}</div>
+    ${body}
+  </section>`;
+}
+
+/* ----- Analytics (both roles) ----- */
+function Analytics() {
+  const isBrand = S.role === 'brand';
+  let ks = S.collabs.filter((k) => k.stage === 3 && (isBrand ? campaign(k.campaignId).brand === ME_BRAND : k.creatorId === ME_CREATOR));
+  const camps = [...new Set(ks.map((k) => k.campaignId))].map(campaign);
+  if (S.perfCampaign && camps.some((c) => c.id === S.perfCampaign)) ks = ks.filter((k) => k.campaignId === S.perfCampaign);
+  const rows = ks.map((k) => ({ k, m: metrics(k), cr: creator(k.creatorId), c: campaign(k.campaignId) }));
+  const sum = (f) => rows.reduce((a, r) => a + r.m[f], 0);
+  const clicks = sum('clicks'), uses = sum('codeUses'), orders = sum('orders'), revenue = sum('revenue'), earning = sum('earning');
+  const daily = Array.from({ length: 14 }, (_, i) => rows.reduce((a, r) => a + r.m.daily[i], 0));
+  const maxBar = Math.max(1, ...rows.map((r) => r.m.clicks));
+  const label = isBrand ? (r) => r.cr.name : (r) => r.c.product;
+
+  return `
+  <div class="page-head"><div><h1>${t('Performance')}</h1><p class="sub">${t('Completed collaborations only. Attribution: 7-day click + promo code.')}</p></div>
+    ${camps.length > 1 ? `<select class="input" id="perf-campaign" data-filter="perfCampaign" style="width:auto"><option value="">${isBrand ? (S.lang === 'ko' ? '전체 캠페인' : 'All campaigns') : 'All campaigns'}</option>${camps.map((c) => `<option value="${c.id}" ${S.perfCampaign === c.id ? 'selected' : ''}>${esc(c.product)}</option>`).join('')}</select>` : ''}</div>
+  ${rows.length ? `
+  <div class="kpis">
+    <div class="card kpi"><span>${t('Clicks')}</span><b class="num">${clicks.toLocaleString()}</b><em>${t('Last 14 days')}</em></div>
+    <div class="card kpi"><span>${t('Promo code uses')}</span><b class="num">${uses.toLocaleString()}</b><em>${rows.length} codes live</em></div>
+    <div class="card kpi"><span>${t('Conversion rate')}</span><b class="num">${pct(clicks ? orders / clicks : 0)}</b><em>${orders} ${t('Orders').toLowerCase()}</em></div>
+    <div class="card kpi"><span>${isBrand ? t('Tracked revenue') : 'Your earnings'}</span><b class="num">${fmt$(isBrand ? revenue : earning)}</b><em>${isBrand ? 'ROAS-ready' : fmt$(revenue) + ' driven sales'}</em></div>
+  </div>
+  <div class="grid two" style="margin-bottom:14px">
+    <div class="card pad"><div class="row between" style="margin-bottom:14px"><h2>${t('Daily clicks')}</h2><span class="xs muted">${t('Last 14 days')}</span></div>${Sparkline(daily)}</div>
+    <div class="card pad"><h2 style="margin-bottom:14px">${isBrand ? t('Clicks by creator') : 'Clicks by campaign'}</h2>
+      <div class="bars">${rows.slice().sort((a, b) => b.m.clicks - a.m.clicks).map((r) => `
+        <div class="bar-row"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(label(r))}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${(r.m.clicks / maxBar * 100).toFixed(1)}%"></div></div>
+        <span class="num r" style="text-align:right">${r.m.clicks.toLocaleString()}</span></div>`).join('')}</div></div>
+  </div>
+  <div class="card"><div class="pad" style="padding-bottom:4px"><h2>${t('Creator performance')}</h2></div>
+    <div class="table-wrap"><table class="t">
+      <thead><tr><th>${isBrand ? t('Creator') : t('Campaign')}</th><th>${t('Code')}</th><th class="r">${t('Clicks')}</th><th class="r">${t('Promo code uses')}</th><th class="r">${t('Orders')}</th><th class="r">${t('CVR')}</th><th class="r">${isBrand ? t('Revenue') : 'Earned'}</th></tr></thead>
+      <tbody>${rows.map((r) => `<tr>
+        <td><div class="strong">${esc(label(r))}</div><div class="xs muted">${esc(isBrand ? r.c.product : r.c.brand)}</div></td>
+        <td class="mono">${r.m.code}</td><td class="r num">${r.m.clicks.toLocaleString()}</td><td class="r num">${r.m.codeUses}</td>
+        <td class="r num">${r.m.orders}</td><td class="r num">${pct(r.m.cvr)}</td><td class="r num">${fmt$(isBrand ? r.m.revenue : r.m.earning)}</td></tr>`).join('')}</tbody>
+    </table></div></div>` : Empty(isBrand ? 'No completed collaborations yet. Approve applicants to start tracking.' : 'Complete a collab to see your clicks and earnings.')}`;
+}
+function Sparkline(data) {
+  const w = 520, h = 150, p = 8, max = Math.max(1, ...data);
+  const x = (i) => p + i * (w - p * 2) / (data.length - 1);
+  const y = (v) => h - p - (v / max) * (h - p * 2 - 14);
+  const line = data.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const area = `${p},${h - p} ${line} ${w - p},${h - p}`;
+  const peak = data.indexOf(max);
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" role="img" aria-label="Daily clicks, last 14 days">
+    <polygon points="${area}" fill="var(--blush)" opacity=".7"/>
+    <polyline points="${line}" fill="none" stroke="var(--rose)" stroke-width="2.2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="${x(peak)}" cy="${y(max)}" r="4" fill="var(--ink)"/>
+    <text x="${Math.min(x(peak) + 8, w - 60)}" y="${y(max) - 6}" font-size="12" fill="var(--ink-2)" font-weight="600">${max.toLocaleString()}</text>
+  </svg>
+  <div class="row between xs muted"><span>Day 1 · post goes live</span><span>Day 14</span></div>`;
+}
+
+function Empty(msg) { return `<div class="card empty"><div class="ring"></div>${esc(msg)}</div>`; }
+
+/* ----- Modals ----- */
+function Modal() {
+  if (!modal) return '';
+  if (modal.type === 'contract') return ContractModal();
+  if (modal.type === 'upload') return UploadModal();
+  return '';
+}
+function contractHTML(c, cr) {
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const end = new Date(); end.setMonth(end.getMonth() + 6);
+  const endStr = end.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const deliverable = cr.platform === 'TikTok' ? '1 TikTok video (30–90s) + 1 TikTok Story' : '1 Instagram Reel (30–90s) + 2 Stories with link sticker';
+  const pay = c.comp === 'seeding' ? `Product seeding only: 1 full-size ${esc(c.product)} (retail ${fmt$(c.price)}). No cash fee.`
+    : c.comp === 'fixed' ? `${fmt$(c.amount)} USD flat fee, paid via LinkGlow within 15 days of content approval, plus product.`
+    : `${c.amount}% commission on net sales tracked by link and promo code ${promo(cr)}, paid monthly (Net 30), plus product.`;
+  return `
+  <div class="contract">
+    <h4>Parties</h4>
+    <p style="margin:0"><b>${esc(c.brand)}</b> ("Brand") and <b>${esc(cr.name)}</b> ${esc(cr.handle)} ("Creator"), via LinkGlow. Effective ${today}.</p>
+    <h4>1 · Deliverables</h4>
+    <ul><li>${deliverable}, featuring ${esc(c.product)}.</li><li>Draft shared in LinkGlow for one round of factual review. The Brand cannot script opinions.</li><li>Post stays live for at least 90 days.</li></ul>
+    <h4>2 · Compensation</h4>
+    <p style="margin:0">${pay}</p>
+    <h4>3 · FTC disclosure (16 CFR Part 255)</h4>
+    <ol>
+      <li>Put <b>#ad</b> or <b>#sponsored</b> at the <b>start</b> of the caption, before the "more" cut. Not buried in a hashtag block.</li>
+      <li>Turn on the platform's <b>Paid Partnership / Branded Content</b> label.</li>
+      <li>Say it out loud in the video: "Thanks ${esc(c.brand)} for sending this." Text overlay alone is not enough.</li>
+      <li>Disclose even if compensation is free product only.</li>
+      <li>Share honest opinions. Only claim results you experienced.</li>
+      <li>No medical or drug claims ("cures acne", "treats rosacea", "FDA approved").${c.category === 'Device' ? ' Device: no clearance claims unless the Brand provides FDA documentation.' : ''}${c.category === 'Sunscreen' ? ' SPF is OTC-regulated in the US: quote only the labeled SPF.' : ''}</li>
+    </ol>
+    <h4>4 · Usage rights — 6 months</h4>
+    <ul><li>Non-exclusive license for the Brand to repost the content on its owned social channels, website, and email.</li>
+      <li>Paid amplification (Spark Ads / Partnership Ads) allowed with credit to the Creator.</li>
+      <li>Term: ${today} → <b>${endStr}</b>. After that, the Brand removes the content from paid ads.</li>
+      <li>Creator keeps copyright. No category exclusivity.</li></ul>
+    <h4>5 · Shipping & sample</h4>
+    <p style="margin:0">${c.ship === 'us' ? 'Ships from the Brand\'s US warehouse' : 'Ships from Korea, duties prepaid by the Brand'} (${esc(c.shipFrom)}), ETA ~${esc(c.days)} days. The sample is the Creator's to keep.</p>
+    <h4>6 · Termination</h4>
+    <p style="margin:0">Either party may cancel before content goes live. Fees owed for approved content survive termination.</p>
+    <p class="xs muted" style="margin:14px 0 0">Prototype template, auto-generated by LinkGlow. Not legal advice.</p>
+  </div>`;
+}
+function ContractModal() {
+  const c = campaign(modal.campaignId), cr = creator(modal.creatorId);
+  const readonly = modal.mode === 'view';
+  const who = modal.mode === 'offer' ? 'brand' : 'creator';
+  const title = modal.mode === 'offer' ? (S.lang === 'ko' ? '제안 · 마이크로 계약서' : 'Offer · micro-contract')
+    : modal.mode === 'view' ? 'Micro-contract' : 'Apply · micro-contract';
+  const signer = who === 'brand' ? c.brand : cr.name;
+  return `
+  <div class="scrim" data-action="close-scrim">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+      <div class="modal-head"><div style="flex:1;min-width:0"><div class="xs muted strong">${esc(title)}</div><h2 style="margin:2px 0 0">${esc(c.product)} × ${esc(cr.name)}</h2></div>
+        <button class="x" data-action="close" aria-label="Close">×</button></div>
+      <div class="modal-body">
+        ${contractHTML(c, cr)}
+        ${readonly ? '' : `
+        <div class="stack" style="margin-top:16px">
+          <label class="check"><input type="checkbox" id="agree-ftc"><span>I understand the FTC disclosure rules above.</span></label>
+          <label class="check"><input type="checkbox" id="agree-usage"><span>I agree to the 6-month marketing usage rights.</span></label>
+          <label class="f"><span>E-signature (type full name)</span><input class="input" id="sign" placeholder="${esc(signer)}" autocomplete="off"></label>
+          <div class="err" id="sign-err" hidden></div>
+        </div>`}
+      </div>
+      <div class="modal-foot">
+        <button class="btn ghost" data-action="close">${readonly ? 'Close' : 'Cancel'}</button>
+        ${readonly ? '' : `<button class="btn primary" data-action="sign">${modal.mode === 'offer' ? (S.lang === 'ko' ? '서명 후 제안 보내기' : 'Sign & send offer') : modal.mode === 'accept' ? 'Sign & accept' : 'Sign & apply'}</button>`}
+      </div>
+    </div>
+  </div>`;
+}
+function UploadModal() {
+  const k = S.collabs.find((x) => x.id === modal.collabId), c = campaign(k.campaignId), cr = creator(k.creatorId);
+  return `
+  <div class="scrim" data-action="close-scrim">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Submit content">
+      <div class="modal-head"><div style="flex:1"><div class="xs muted strong">Content upload · FTC check</div><h2 style="margin:2px 0 0">${esc(c.product)}</h2></div>
+        <button class="x" data-action="close" aria-label="Close">×</button></div>
+      <div class="modal-body stack">
+        <label class="f"><span>Post URL</span><input class="input" id="up-url" inputmode="url" placeholder="https://www.tiktok.com/${esc(cr.handle)}/video/…"></label>
+        <label class="f"><span>Caption (first lines)</span>
+          <textarea class="input" id="up-caption" placeholder="#ad My skin drank this ${esc(c.product)} from @${esc(c.brand.replace(/\s/g, '').toLowerCase())}…"></textarea>
+          <div class="ftc-live" id="ftc-live"><span class="dot"></span><span>Add #ad or #sponsored in the first 125 characters</span></div></label>
+        <label class="check"><input type="checkbox" id="up-label"><span>Paid Partnership / Branded Content label is ON</span></label>
+        <label class="check"><input type="checkbox" id="up-verbal"><span>I say the sponsorship out loud in the video</span></label>
+        <label class="check"><input type="checkbox" id="up-claims"><span>No medical or drug claims</span></label>
+        <div class="callout sky small">Your promo code <span class="mono strong">${promo(cr)}</span> is live. Put it on screen and in the caption.</div>
+        <div class="err" id="up-err" hidden></div>
+      </div>
+      <div class="modal-foot"><button class="btn ghost" data-action="close">Cancel</button><button class="btn primary" data-action="submit-content">Run FTC check & submit</button></div>
+    </div>
+  </div>`;
+}
+const ftcOk = (caption) => /#(ad|sponsored|partner|brandpartner)\b/i.test(caption.slice(0, 125));
+
+/* ---------- Render ---------- */
+function Main() {
+  const tab = S.tab[S.role];
+  if (S.role === 'brand') return { create: BrandCreate, discover: BrandDiscover, campaigns: BrandCampaigns, analytics: Analytics }[tab]();
+  return { feed: CreatorFeed, status: CreatorStatus, analytics: Analytics }[tab]();
+}
+function render() {
+  // Preserve focus and caret across full re-renders (search inputs re-render on every keystroke).
+  const a = document.activeElement, focusId = a && a.id, sel = a && 'selectionStart' in a ? [a.selectionStart, a.selectionEnd] : null;
+  const modalScroll = $('.modal-body')?.scrollTop;
+  document.documentElement.lang = S.role === 'brand' && S.lang === 'ko' ? 'ko' : 'en';
+  $('#app').innerHTML = `${Header()}<main class="shell">${Tabs()}${Main()}</main>${Modal()}${toastMsg ? `<div class="toast" role="status">${esc(toastMsg)}</div>` : ''}`;
+  if (focusId) { const el = document.getElementById(focusId); if (el) { el.focus({ preventScroll: true }); try { if (sel) el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } }
+  if (modalScroll) { const mb = $('.modal-body'); if (mb) mb.scrollTop = modalScroll; }
+  document.body.style.overflow = modal ? 'hidden' : '';
+}
+
+/* ---------- Actions ---------- */
+function setPath(path, value) {
+  const keys = path.split('.'); let o = S;
+  while (keys.length > 1) o = o[keys.shift()];
+  o[keys[0]] = value;
+}
+function nextTracking(c) {
+  const n = String(Math.floor(100000000 + Math.random() * 899999999));
+  return c.ship === 'us' ? { carrier: 'USPS', tracking: '9400' + n + '11' } : { carrier: 'EMS', tracking: 'EG' + n + 'KR' };
+}
+const actions = {
+  role: ({ v }) => update((s) => { s.role = v; s.perfCampaign = ''; window.scrollTo(0, 0); }),
+  lang: ({ v }) => update((s) => { s.lang = v; }),
+  tab: ({ v }) => update((s) => { s.tab[s.role] = v; window.scrollTo(0, 0); }),
+  'draft-set': ({ k, v }) => update((s) => { s.draft[k] = v; delete s.draftErrors[k]; if (k === 'comp') delete s.draftErrors.amount; if (k === 'ship') s.draft.days = v === 'us' ? '4' : '9'; }),
+  'draft-toggle': ({ k, v }) => update((s) => { const a = s.draft[k]; s.draft[k] = a.includes(v) ? a.filter((x) => x !== v) : [...a, v]; delete s.draftErrors[k]; }),
+  offer: ({ creator: crId }) => {
+    if (!S.offerCampaign || !campaign(S.offerCampaign)) return toast(t('Choose a campaign'));
+    modal = { type: 'contract', mode: 'offer', campaignId: S.offerCampaign, creatorId: crId }; render();
+  },
+  apply: ({ id }) => { modal = { type: 'contract', mode: 'apply', campaignId: id, creatorId: ME_CREATOR }; render(); },
+  'accept-offer': ({ id }) => { const k = S.collabs.find((x) => x.id === id); modal = { type: 'contract', mode: 'accept', campaignId: k.campaignId, creatorId: k.creatorId, collabId: id }; render(); },
+  'contract-view': ({ id }) => { const k = S.collabs.find((x) => x.id === id); modal = { type: 'contract', mode: 'view', campaignId: k.campaignId, creatorId: k.creatorId }; render(); },
+  sign: () => {
+    const errEl = $('#sign-err'), name = $('#sign').value.trim();
+    const problems = [];
+    if (!$('#agree-ftc').checked) problems.push('Confirm the FTC disclosure rules.');
+    if (!$('#agree-usage').checked) problems.push('Agree to the usage rights.');
+    if (name.length < 2) problems.push('Type your name to sign.');
+    if (problems.length) { errEl.hidden = false; errEl.textContent = problems.join(' '); return; }
+    const m = modal; modal = null;
+    if (m.mode === 'offer') {
+      update((s) => s.collabs.push({ id: uid('k'), campaignId: m.campaignId, creatorId: m.creatorId, stage: -1, via: 'offer', signedBrand: name }));
+      toast((S.lang === 'ko' ? '제안을 보냈습니다 → ' : 'Offer sent to ') + creator(m.creatorId).name);
+    } else if (m.mode === 'accept') {
+      update((s) => { const k = s.collabs.find((x) => x.id === m.collabId); k.stage = 0; k.signedCreator = name; });
+      toast('Offer accepted. The brand will ship your sample.');
+    } else {
+      update((s) => s.collabs.push({ id: uid('k'), campaignId: m.campaignId, creatorId: ME_CREATOR, stage: 0, via: 'apply', signedCreator: name }));
+      toast('Applied. Track it in My Collaborations.');
+    }
+  },
+  approve: ({ id }) => {
+    update((s) => { const k = s.collabs.find((x) => x.id === id); Object.assign(k, nextTracking(campaign(k.campaignId)), { stage: 1 }); });
+    toast(S.role === 'brand' && S.lang === 'ko' ? '승인 완료 · 송장번호가 발급되었습니다' : 'Approved. Tracking number issued.');
+  },
+  'simulate-ship': ({ id }) => { actions.approve({ id }); },
+  decline: ({ id }) => { update((s) => { s.collabs = s.collabs.filter((x) => x.id !== id); }); toast(S.lang === 'ko' && S.role === 'brand' ? '거절했습니다' : 'Removed.'); },
+  received: ({ id }) => { update((s) => { s.collabs.find((x) => x.id === id).stage = 2; }); toast('Marked as delivered. Content is due next.'); },
+  upload: ({ id }) => { modal = { type: 'upload', collabId: id }; render(); },
+  'submit-content': () => {
+    const url = $('#up-url').value.trim(), cap = $('#up-caption').value;
+    const problems = [];
+    if (!/^https?:\/\/(www\.)?(tiktok\.com|instagram\.com)\//i.test(url)) problems.push('Paste a TikTok or Instagram post URL.');
+    if (!ftcOk(cap)) problems.push('Caption needs #ad or #sponsored in the first 125 characters.');
+    if (!$('#up-label').checked) problems.push('Turn on the paid-partnership label.');
+    if (!$('#up-verbal').checked) problems.push('Add a verbal disclosure.');
+    if (!$('#up-claims').checked) problems.push('Confirm no medical claims.');
+    if (problems.length) { const e = $('#up-err'); e.hidden = false; e.innerHTML = problems.map(esc).join('<br>'); return; }
+    const id = modal.collabId; modal = null;
+    update((s) => { const k = s.collabs.find((x) => x.id === id); k.stage = 3; k.post = url; k.caption = cap; });
+    toast('FTC check passed. Collab completed ✓');
+  },
+  close: () => { modal = null; render(); },
+  'close-scrim': (_, el, e) => { if (e.target === el) actions.close(); },
+  reset: () => { S = seed(); modal = null; save(); render(); toast('Demo reset.'); }
+};
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  actions[el.dataset.action]?.(el.dataset, el, e);
+});
+document.addEventListener('input', (e) => {
+  const el = e.target;
+  if (el.dataset.bind) { setPath(el.dataset.bind, el.value); if (el.dataset.bind.startsWith('draft.')) { delete S.draftErrors[el.dataset.bind.slice(6)]; } save(); if (el.id.startsWith('d-')) refreshPreview(); }
+  if (el.dataset.filter && el.tagName === 'INPUT') { setPath(el.dataset.filter, el.value); save(); render(); }
+  if (el.id === 'up-caption') {
+    const ok = ftcOk(el.value), live = $('#ftc-live');
+    live.innerHTML = `<span class="dot ${ok ? 'ok' : ''}"></span><span>${ok ? 'Disclosure found up front ✓' : 'Add #ad or #sponsored in the first 125 characters'}</span>`;
+  }
+});
+document.addEventListener('change', (e) => {
+  const el = e.target;
+  if (el.dataset.filter && el.tagName === 'SELECT') { setPath(el.dataset.filter, el.value); save(); render(); }
+  if (el.dataset.bind && el.tagName === 'SELECT') { setPath(el.dataset.bind, el.value); save(); render(); }
+});
+document.addEventListener('submit', (e) => {
+  if (e.target.id !== 'create-form') return;
+  e.preventDefault();
+  const d = S.draft, errs = {};
+  if (!d.product.trim()) errs.product = 1;
+  if (!d.skin.length) errs.skin = 1;
+  if (d.comp !== 'seeding' && !(Number(d.amount) > 0)) errs.amount = 1;
+  if (!(Number(d.price) > 0)) errs.price = 1;
+  if (!d.deadline) errs.deadline = 1;
+  if (Object.keys(errs).length) { update((s) => { s.draftErrors = errs; }); return toast(t('Required') + ' ✱'); }
+  const c = {
+    id: uid('c'), brand: d.brand.trim() || ME_BRAND, product: d.product.trim(), category: d.category, skin: d.skin.slice(),
+    concerns: d.concerns.length ? d.concerns.slice() : ['Dryness'], comp: d.comp, amount: Number(d.amount) || 0, price: Number(d.price),
+    slots: Math.max(1, Number(d.slots) || 1), ship: d.ship, shipFrom: d.shipFrom.trim() || 'Seoul, Korea', days: Number(d.days) || 9,
+    notes: d.notes.trim(), brief: d.brief.trim(), deadline: d.deadline, created: -Date.now() // newest first in feed
+  };
+  update((s) => { s.campaigns.push(c); s.draft = blankDraft(); s.draftErrors = {}; s.tab.brand = 'campaigns'; s.offerCampaign = c.id; });
+  window.scrollTo(0, 0);
+  toast(t('Campaign published. Live on the US creator feed.'));
+});
+// Live preview refresh without re-rendering the form (keeps keyboard open on mobile).
+function refreshPreview() {
+  const holder = $('#create-form')?.nextElementSibling;
+  if (!holder) return;
+  const card = holder.querySelector('article');
+  const d = S.draft;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = CampaignCard({ ...d, id: 'preview', product: d.product || (S.lang === 'ko' ? '제품명을 입력하세요' : 'Your product name'), amount: Number(d.amount) || 0, price: Number(d.price) || 0, slots: Number(d.slots) || 0 }, true);
+  card.replaceWith(tmp.firstElementChild);
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal) actions.close(); });
+
+render();
+</script>
+<footer class="foot">
+  LinkGlow prototype · mock data · <button class="link" data-action="reset" style="font-size:12px">Reset demo</button>
+</footer>
+</body>
+</html>

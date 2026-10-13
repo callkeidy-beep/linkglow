@@ -28,7 +28,7 @@ Open `index.html` in a browser. Deploy: import this repo in Vercel (no build com
 
 | All | Logo | Tapping the LinkGlow logo returns to the first tab of the current view. |
 | Author | Edit / delete | The ⋯ menu on your own post or comment edits it (marked "edited") or deletes it after a confirm step. Others see **Report**. |
-| Admin (KO/EN) | Moderation | Third view. Queue of every post, collab post and comment, sorted by reports. Hide / unhide (hidden items stay visible only to the author and moderators), edit (marked "edited by moderator"), delete, dismiss report. Moderators can also comment as "LinkGlow Team". |
+| Admin (KO/EN) | Moderation | Third view. Queue of every post, collab post and comment, sorted by reports. Hide / unhide (hidden items stay visible only to the author and moderators), edit (marked "edited by moderator"), delete, dismiss report. **Delete never destroys data**: every delete (by author or moderator) moves the item to the 🗄 Archive filter, where a moderator can restore it — with its comments — or delete it forever after a second confirm. Moderators can also comment as "LinkGlow Team". |
 
 "Reset demo" in the footer restores the seed data.
 

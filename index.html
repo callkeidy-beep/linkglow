@@ -454,7 +454,18 @@ const KO = {
   'Post item': '게시물',
   'Collab post': '협업 게시물',
   'Comment': '댓글',
-  'Nothing to review.': '검토할 항목이 없습니다.'
+  'Nothing to review.': '검토할 항목이 없습니다.',
+  'Archive': '보관소',
+  'Restore': '복구',
+  'Delete forever': '영구 삭제',
+  'Move to archive?': '보관소로 옮길까요?',
+  'It disappears for everyone. A moderator can restore it from the archive.': '모든 사람에게서 사라집니다. 운영자가 보관소에서 복구할 수 있습니다.',
+  'Its comments are archived with it.': '달린 댓글도 함께 보관됩니다.',
+  'Delete forever?': '영구 삭제할까요?',
+  'Deleted by author': '작성자 삭제',
+  'Deleted by moderator': '운영자 삭제',
+  'Archived items come back exactly as they were, comments included.': '보관된 항목은 댓글까지 원래 모습 그대로 복구됩니다.',
+  'Archive is empty.': '보관소가 비어 있습니다.'
 };
 
 /* ---------- Seed data ---------- */
@@ -723,7 +734,7 @@ function tabsFor(role) {
     ];
   }
   if (role === 'admin') {
-    const flagged = modItems().filter((x) => x.obj.reports && !x.obj.hidden).length;
+    const flagged = modItems().filter((x) => x.obj.reports && !x.obj.hidden && !x.archived).length;
     return [
       { id: 'moderation', label: t('Moderation'), short: S.lang === 'ko' ? '관리' : 'Moderate', icon: ICON.shield, badge: flagged },
       { id: 'glow', label: t('Glow Feed'), short: S.lang === 'ko' ? '피드' : 'Feed', icon: ICON.heart }
@@ -1142,7 +1153,7 @@ function owns(kind, obj) {
   }
   return S.role === 'creator' && obj.creatorId === S.me;
 }
-const canSee = (kind, obj) => !obj.hidden || isAdmin() || owns(kind, obj);
+const canSee = (kind, obj) => !obj.deleted && (!obj.hidden || isAdmin() || owns(kind, obj));
 function findItem(kind, id, parent) {
   if (kind === 'post') return S.posts.find((x) => x.id === id);
   if (kind === 'collab') return S.collabs.find((x) => x.id === id);
@@ -1152,16 +1163,21 @@ const editedLabel = (obj) => obj.edited ? ` · ${obj.editedBy === 'admin' ? t('e
 const Dots = (kind, id, parent = '') => `<button class="dots" data-action="menu" data-kind="${kind}" data-id="${id}" data-parent="${parent}" aria-label="More actions">⋯</button>`;
 const HiddenNote = (obj) => obj.hidden ? `<div class="hidden-note">🚫 ${t('Hidden by moderator · only the author and moderators see this')}</div>` : '';
 function modItems() {
+  const parentGone = (pid) => S.posts.find((po) => po.id === pid)?.deleted;
   return [
-    ...S.posts.map((po) => ({ kind: 'post', id: po.id, obj: po, author: creator(po.creatorId)?.name || '—', text: po.caption, ts: po.ts })),
-    ...S.collabs.filter((k) => k.stage === 3).map((k) => ({ kind: 'collab', id: k.id, obj: k, author: creator(k.creatorId).name, text: k.caption || '', ts: k.ts || 0 })),
-    ...Object.entries(S.comments).flatMap(([pid, arr]) => arr.map((m) => ({ kind: 'comment', id: m.id, parent: pid, obj: m, author: m.name, text: m.text, ts: m.ts })))
+    ...S.posts.map((po) => ({ kind: 'post', id: po.id, obj: po, author: creator(po.creatorId)?.name || '—', text: po.caption, ts: po.ts, archived: !!po.deleted })),
+    ...S.collabs.filter((k) => k.stage === 3).map((k) => ({ kind: 'collab', id: k.id, obj: k, author: creator(k.creatorId).name, text: k.caption || '', ts: k.ts || 0, archived: false })),
+    ...Object.entries(S.comments).flatMap(([pid, arr]) => arr.map((m) => ({ kind: 'comment', id: m.id, parent: pid, obj: m, author: m.name, text: m.text, ts: m.ts, archived: !!m.deleted, withParent: !m.deleted && !!parentGone(pid) })))
   ];
 }
 function Moderation() {
-  const all = modItems(), f = S.modFilter;
-  const list = all.filter((x) => f === 'reported' ? x.obj.reports : f === 'hidden' ? x.obj.hidden : true)
-    .sort((a, b) => (b.obj.reports || 0) - (a.obj.reports || 0) || b.ts - a.ts);
+  const every = modItems(), f = S.modFilter;
+  const all = every.filter((x) => !x.archived && !x.withParent);
+  const archived = every.filter((x) => x.archived);
+  const list = f === 'archive'
+    ? archived.sort((a, b) => b.obj.deleted.ts - a.obj.deleted.ts)
+    : all.filter((x) => f === 'reported' ? x.obj.reports : f === 'hidden' ? x.obj.hidden : true)
+      .sort((a, b) => (b.obj.reports || 0) - (a.obj.reports || 0) || b.ts - a.ts);
   const kindLabel = { post: (t('Post item') === 'Post item' ? 'Post' : t('Post item')), collab: t('Collab post'), comment: t('Comment') };
   const count = (fn) => all.filter(fn).length;
   return `
@@ -1172,9 +1188,24 @@ function Moderation() {
     <div class="card kpi"><span>${t('Reported')}</span><b class="num">${count((x) => x.obj.reports)}</b></div>
     <div class="card kpi"><span>${t('Hidden')}</span><b class="num">${count((x) => x.obj.hidden)}</b></div>
   </div>
-  <div class="chips" style="margin-bottom:14px">${[['all', 'All'], ['reported', 'Reported'], ['hidden', 'Hidden']].map(([v, l]) => `<button class="chip ${f === v ? 'on' : ''}" data-action="mod-filter" data-v="${v}">${t(l)}</button>`).join('')}</div>
+  <div class="chips" style="margin-bottom:14px">${[['all', 'All'], ['reported', 'Reported'], ['hidden', 'Hidden'], ['archive', 'Archive']].map(([v, l]) => `<button class="chip ${f === v ? 'on' : ''}" data-action="mod-filter" data-v="${v}">${v === 'archive' ? '🗄 ' : ''}${t(l)}${v === 'archive' && archived.length ? ` · ${archived.length}` : ''}</button>`).join('')}</div>
+  ${f === 'archive' ? `<p class="small muted" style="margin:-4px 0 12px">${t('Archived items come back exactly as they were, comments included.')}</p>` : ''}
   <div class="card pad">${list.length ? list.map((x) => {
     const o = x.obj, d = `data-kind="${x.kind}" data-id="${x.id}" data-parent="${x.parent || ''}"`;
+    if (x.archived) {
+      const n = x.kind === 'post' ? (S.comments[x.id] || []).filter((m) => !m.deleted).length : 0;
+      return `<div class="mod-row is-hidden" style="opacity:.85">
+      <div class="grow">
+        <div class="row" style="margin-bottom:4px"><span class="tag ${x.kind === 'comment' ? 'sky' : 'blush'}">${kindLabel[x.kind]}</span>
+          <span class="tag">🗄 ${o.deleted.by === 'admin' ? t('Deleted by moderator') : t('Deleted by author')} · ${ago(o.deleted.ts)}</span>
+          <span class="xs muted">${esc(x.author)}${n ? ` · 💬 ${n}` : ''}</span></div>
+        <div class="small clamp2">${esc(x.text) || '<span class="muted">(photo only)</span>'}</div>
+      </div>
+      <div class="row">
+        <button class="btn primary sm" data-action="item-restore" ${d}>↺ ${t('Restore')}</button>
+        <button class="btn ghost sm" data-action="item-purge" ${d} style="color:var(--danger)">${t('Delete forever')}</button>
+      </div></div>`;
+    }
     return `<div class="mod-row ${o.hidden ? 'is-hidden' : ''}">
       <div class="grow">
         <div class="row" style="margin-bottom:4px"><span class="tag ${x.kind === 'comment' ? 'sky' : 'blush'}">${kindLabel[x.kind]}</span>
@@ -1188,7 +1219,7 @@ function Moderation() {
         <button class="btn ${o.hidden ? 'ghost' : 'blush'} sm" data-action="item-hide" ${d}>${o.hidden ? t('Unhide') : t('Hide')}</button>
         ${x.kind !== 'collab' ? `<button class="btn ghost sm" data-action="item-delete" ${d} style="color:var(--danger)">${t('Delete')}</button>` : ''}
       </div></div>`;
-  }).join('') : `<p class="small muted" style="margin:0">${t('Nothing to review.')}</p>`}</div>`;
+  }).join('') : `<p class="small muted" style="margin:0">${f === 'archive' ? t('Archive is empty.') : t('Nothing to review.')}</p>`}</div>`;
 }
 const linkTags = (text) => esc(text).replace(/#([\w가-힣]+)/g, '<span class="hash">#$1</span>');
 function PostArt(po, cls = 'ph') {
@@ -1466,8 +1497,13 @@ function MenuModal() {
   const { kind, id, parent } = modal, obj = findItem(kind, id, parent);
   if (!obj) return '';
   const d = `data-kind="${kind}" data-id="${id}" data-parent="${parent || ''}"`;
+  if (modal.confirm === 'purge') {
+    return Shell(t('Delete forever'), t('Delete forever?'), `<p class="small muted" style="margin:0">${kind === 'post' ? t('Comments under it go too.') + ' ' : ''}${t('This cannot be undone.')}</p>`,
+      `<button class="btn ghost" data-action="close">${t('Cancel')}</button><button class="btn primary" style="background:var(--danger)" data-action="item-purge-yes" ${d}>${t('Delete forever')}</button>`);
+  }
   if (modal.confirm) {
-    return Shell(t('Delete'), t('Delete this for good?'), `<p class="small muted" style="margin:0">${kind === 'post' ? t('Comments under it go too.') + ' ' : ''}${t('This cannot be undone.')}</p>`,
+    const why = S.role === 'creator' ? 'It disappears from the feed and your profile. LinkGlow support can restore it if you change your mind.' : t('It disappears for everyone. A moderator can restore it from the archive.');
+    return Shell(t('Delete'), t('Move to archive?'), `<p class="small muted" style="margin:0">${why}${kind === 'post' ? ' ' + t('Its comments are archived with it.') : ''}</p>`,
       `<button class="btn ghost" data-action="close">${t('Cancel')}</button><button class="btn primary" style="background:var(--danger)" data-action="item-delete-yes" ${d}>${t('Delete')}</button>`);
   }
   const mine = owns(kind, obj), admin = isAdmin(), B = (action, label, cls = '') => `<button class="sheet-btn ${cls}" data-action="${action}" ${d}>${label}</button>`;
@@ -1686,13 +1722,26 @@ const actions = {
   'item-dismiss': ({ kind, id, parent }) => { const o = findItem(kind, id, parent); if (modal && modal.type === 'menu') modal = null; update(() => { o.reports = 0; }); toast(S.lang === 'ko' ? '신고를 기각했습니다' : 'Report dismissed.'); },
   'item-report': ({ kind, id, parent }) => { const o = findItem(kind, id, parent); modal = null; update((s) => { o.reports = (o.reports || 0) + 1; s.myReports.push(id); }); toast('Reported. A moderator will review it.'); },
   'item-delete': ({ kind, id, parent }) => { modal = { type: 'menu', kind, id, parent, confirm: true }; render(); },
+  // Delete = move to archive. Nothing is lost until a moderator purges it.
   'item-delete-yes': ({ kind, id, parent }) => {
+    const o = findItem(kind, id, parent);
+    modal = null;
+    update(() => { o.deleted = { ts: Date.now(), by: isAdmin() && !owns(kind, o) ? 'admin' : 'owner' }; });
+    toast(S.role === 'creator' ? 'Deleted.' : S.lang === 'ko' ? '보관소로 옮겼습니다. 언제든 복구할 수 있습니다.' : 'Moved to archive. You can restore it any time.');
+  },
+  'item-restore': ({ kind, id, parent }) => {
+    const o = findItem(kind, id, parent);
+    update(() => { delete o.deleted; });
+    toast(S.lang === 'ko' ? '복구했습니다. 원래 자리로 돌아갔습니다.' : 'Restored to its original place.');
+  },
+  'item-purge': ({ kind, id, parent }) => { modal = { type: 'menu', kind, id, parent, confirm: 'purge' }; render(); },
+  'item-purge-yes': ({ kind, id, parent }) => {
     modal = null;
     update((s) => {
       if (kind === 'post') { s.posts = s.posts.filter((x) => x.id !== id); delete s.comments[id]; }
       else if (kind === 'comment') s.comments[parent] = (s.comments[parent] || []).filter((x) => x.id !== id);
     });
-    toast(S.lang === 'ko' && S.role !== 'creator' ? '삭제했습니다' : 'Deleted.');
+    toast(S.lang === 'ko' ? '영구 삭제했습니다.' : 'Deleted forever.');
   },
   compose: () => { modal = { type: 'compose', img: '', caption: '' }; render(); },
   'compose-clear': () => { modal.img = ''; render(); },

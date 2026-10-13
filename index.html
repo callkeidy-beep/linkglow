@@ -508,7 +508,7 @@ function seed() {
   const s = {
     role: 'brand',
     lang: 'en',
-    tab: { brand: 'create', creator: 'feed', admin: 'moderation' },
+    tab: { brand: 'glow', creator: 'feed', admin: 'moderation' },
     campaigns: [
       { id: 'c1', brand: 'Dewlab Seoul', product: 'Rice Ferment Barrier Toner', category: 'Skincare', skin: ['Dry', 'Sensitive'], concerns: ['Dryness', 'Sensitivity'], comp: 'affiliate', amount: 15, price: 28, slots: 20, ship: 'kr', shipFrom: 'Seongsu-dong, Seoul', days: 9, notes: 'Under $800 de minimis. Cosmetic, non-drug.', brief: 'Show a 7-day barrier reset. Morning + night routine, texture shot, honest day-7 verdict.', deadline: '2026-11-08', created: 5 },
       { id: 'c2', brand: 'Haneul Lab', product: 'Mugwort Calming Sun Fluid SPF50+', category: 'Sunscreen', skin: ['Oily', 'Combination', 'Acne-prone'], concerns: ['Sun Protection', 'Oiliness'], comp: 'fixed', amount: 300, price: 24, slots: 8, ship: 'us', shipFrom: 'Haneul US 3PL, Carson CA', days: 3, notes: 'Ships from US stock. No customs delay.', brief: 'No white cast test on camera. Reapply over makeup. Show finish at hour 6.', deadline: '2026-10-30', created: 9 },
@@ -726,10 +726,10 @@ function tabsFor(role) {
     const pending = S.collabs.filter((k) => k.stage === 0 && campaign(k.campaignId)?.brand === ME_BRAND).length
       + S.pitches.filter((p) => p.status === 'pending' && campaign(p.campaignId)?.brand === ME_BRAND).length;
     return [
-      { id: 'create', label: t('Create Campaign'), short: S.lang === 'ko' ? '등록' : 'Create', icon: ICON.plus },
-      { id: 'discover', label: t('Creator Discovery'), short: S.lang === 'ko' ? '탐색' : 'Discover', icon: ICON.search },
-      { id: 'campaigns', label: t('My Campaigns'), short: S.lang === 'ko' ? '캠페인' : 'Campaigns', icon: ICON.box, badge: pending },
       { id: 'glow', label: t('Glow Feed'), short: S.lang === 'ko' ? '피드' : 'Feed', icon: ICON.heart },
+      { id: 'discover', label: t('Creator Discovery'), short: S.lang === 'ko' ? '탐색' : 'Discover', icon: ICON.search },
+      { id: 'create', label: t('Create Campaign'), short: S.lang === 'ko' ? '등록' : 'Create', icon: ICON.plus },
+      { id: 'campaigns', label: t('My Campaigns'), short: S.lang === 'ko' ? '캠페인' : 'Campaigns', icon: ICON.box, badge: pending },
       { id: 'analytics', label: t('Performance'), short: S.lang === 'ko' ? '성과' : 'Stats', icon: ICON.chart }
     ];
   }
